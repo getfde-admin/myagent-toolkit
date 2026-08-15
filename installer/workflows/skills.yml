@@ -1,0 +1,280 @@
+# Skill installation workflow: installs a skill from jeffsia-blacksmith/altShiftClawToolkit to the workspace of the specified issue.
+# Makes two commits: one on the issue-N branch (skill files), one on main (workflow YAML env vars).
+name: '🔧 Install Skill'
+run-name: "Skill install: ${{ inputs.skill_name }} | req:${{ inputs.request_id }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      skill_name:
+        description: 'Skill name'
+        required: true
+        type: string
+      issue_number:
+        description: 'Target issue number'
+        required: true
+        type: string
+      request_id:
+        description: 'Workflow notification request ID'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  # Known issue: GitHub only guarantees 1 running, 1 pending. If a new run is added while
+  # 1 running + 1 pending exist, the existing 1 pending gets cancelled and the newest becomes pending.
+  group: "skills-install-${{ github.repository }}-{{ inputs.issue_number }}"
+  cancel-in-progress: false
+
+env:
+  SKILL_NAME: "${{ inputs.skill_name }}"
+  ISSUE_NUMBER: "${{ inputs.issue_number }}"
+  PUSH_TOKEN: "${{ secrets.CLAW_SYS_GITHUB_TOKEN || github.token }}"
+  AUTOMATION_GIT_USER_NAME: "${{ vars['AUTOMATION_GIT_USER_NAME'] || 'github-actions[bot]' }}"
+  AUTOMATION_GIT_USER_EMAIL: "${{ vars['AUTOMATION_GIT_USER_EMAIL'] || 'github-actions[bot]@users.noreply.github.com' }}"
+  SKILLS_SOURCE_REPO: "jeffsia-blacksmith/altShiftClawToolkit"
+  REQUEST_ID: "${{ inputs.request_id }}"
+
+jobs:
+  install-skill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      # ── Step 1: Validate input parameters ─────────────────────────────
+      - name: Validate input parameters
+        shell: bash
+        run: |
+          if [[ -z "${SKILL_NAME}" ]]; then
+            echo "::error::[Step 1 - Validate input] Skill name is missing. Please make sure the install request includes a valid skill name."
+            echo "INSTALL_FAILED=true" >> "$GITHUB_ENV"
+            echo "INSTALL_ERROR=[Step 1 - Validate input] Skill name is missing. Please make sure the install request includes a valid skill name." >> "$GITHUB_ENV"
+            exit 0
+          fi
+          if [[ -z "${ISSUE_NUMBER}" ]]; then
+            echo "::error::[Step 1 - Validate input] Issue number is missing. Please make sure the install request includes a valid target Issue number."
+            echo "INSTALL_FAILED=true" >> "$GITHUB_ENV"
+            echo "INSTALL_ERROR=[Step 1 - Validate input] Issue number is missing. Please make sure the install request includes a valid target Issue number." >> "$GITHUB_ENV"
+            exit 0
+          fi
+          echo "skill_name=${SKILL_NAME}"
+          echo "issue_number=${ISSUE_NUMBER}"
+
+      # ── Step 2: Checkout repository ──────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ env.PUSH_TOKEN }}
+
+      # ── Step 3: Sparse-checkout skill from skill repo ───────────────
+      - name: Sparse-checkout skill from skill repo
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ env.SKILLS_SOURCE_REPO }}
+          ref: main
+          path: .tmp/skills-source
+          sparse-checkout: |
+            skills/${{ env.SKILL_NAME }}
+
+      - name: Verify skill exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -d ".tmp/skills-source/skills/${SKILL_NAME}" ]]; then
+            echo "::error::Skill '${SKILL_NAME}' not found in ${SKILLS_SOURCE_REPO}"
+            echo "INSTALL_FAILED=true" >> "$GITHUB_ENV"
+            echo "INSTALL_ERROR=[Step 3 - Locate skill] Could not find skill '${SKILL_NAME}'. Please confirm the skill name is correct, or contact the admin to check whether this skill has been published." >> "$GITHUB_ENV"
+            exit 0
+          fi
+          echo "SKILL_SOURCE_DIR=.tmp/skills-source/skills/${SKILL_NAME}" >> "$GITHUB_ENV"
+
+      # ── Step 4: Read skill githubclaw.json ──────────────────────────
+      - name: Read skill githubclaw.json
+        if: env.INSTALL_FAILED != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          MANIFEST="${SKILL_SOURCE_DIR}/githubclaw.json"
+          if [[ ! -f "$MANIFEST" ]]; then
+            echo "No githubclaw.json found, skipping env configuration"
+            echo "REQUIRED_ENVS=" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          # Extract env vars from githubclaw.json's requireEnv array into a comma-separated string
+          ENVS=$(node -e "
+            const fs = require('fs');
+            const manifest = JSON.parse(fs.readFileSync('${MANIFEST}', 'utf8'));
+            const envs = Array.isArray(manifest.requireEnv)
+              ? manifest.requireEnv.filter(e => typeof e === 'string' && e.trim()).map(e => e.trim())
+              : [];
+            if (envs.length) console.log(envs.join(','));
+          ")
+
+          if [[ -z "$ENVS" ]]; then
+            echo "No requireEnv declared"
+            echo "REQUIRED_ENVS=" >> "$GITHUB_ENV"
+          else
+            echo "Required env vars: $ENVS"
+            echo "REQUIRED_ENVS=${ENVS}" >> "$GITHUB_ENV"
+          fi
+
+      # ── Step 5: Switch to issue branch and install skill files ──────
+      - name: Switch to issue branch and install skill files
+        if: env.INSTALL_FAILED != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TARGET_BRANCH="issue-${ISSUE_NUMBER}"
+          INSTALL_PATH=".agents/skills/${SKILL_NAME}"
+
+          git config user.name "${AUTOMATION_GIT_USER_NAME}"
+          git config user.email "${AUTOMATION_GIT_USER_EMAIL}"
+          git remote set-url origin "https://x-access-token:${PUSH_TOKEN}@github.com/${{ github.repository }}.git"
+
+          git fetch --no-tags origin main "${TARGET_BRANCH}" || git fetch --no-tags origin main || true
+          if git show-ref --verify --quiet "refs/remotes/origin/${TARGET_BRANCH}"; then
+            git checkout -B "${TARGET_BRANCH}" "origin/${TARGET_BRANCH}"
+          else
+            git checkout -B "${TARGET_BRANCH}" origin/main
+          fi
+
+          # Copy skill files (excluding the .githubclaw/ directory)
+          mkdir -p "${INSTALL_PATH}"
+          rsync -a --exclude='.githubclaw' "${SKILL_SOURCE_DIR}/" "${INSTALL_PATH}/"
+          echo "✅ Copied skill files to ${INSTALL_PATH}"
+          ls -la "${INSTALL_PATH}/"
+
+          # Commit and push to the issue branch
+          git add -A -- . ':(exclude).tmp/skills-source'
+          if git diff --cached --quiet; then
+            echo "No changes to commit (skill may already be installed)"
+            exit 0
+          fi
+
+          git commit -m "feat: install skill '${SKILL_NAME}' for issue #${ISSUE_NUMBER}"
+
+          if git push origin "HEAD:${TARGET_BRANCH}"; then
+            echo "✅ Pushed skill files to ${TARGET_BRANCH}"
+          else
+            echo "::warning::Normal push failed, trying force-with-lease..."
+            if git push --force-with-lease origin "HEAD:${TARGET_BRANCH}"; then
+              echo "✅ Force-pushed skill files to ${TARGET_BRANCH}"
+            else
+              echo "INSTALL_FAILED=true" >> "$GITHUB_ENV"
+              echo "INSTALL_ERROR=[Step 5 - Install skill files] Could not save the skill files to the workspace (${TARGET_BRANCH}). This may be a permission issue. Please contact the admin to confirm that CLAW_SYS_GITHUB_TOKEN has repository write access." >> "$GITHUB_ENV"
+            fi
+          fi
+
+      # ── Step 6: Run custom post-install script ──────────────────────
+      - name: Run custom post-install script
+        if: env.INSTALL_FAILED != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          POST_INSTALL="${SKILL_SOURCE_DIR}/.githubclaw/post-install.sh"
+          if [[ -f "$POST_INSTALL" ]]; then
+            echo "Running post-install.sh..."
+            export SKILL_NAME="${SKILL_NAME}"
+            export ISSUE_NUMBER="${ISSUE_NUMBER}"
+            export TARGET_BRANCH="issue-${ISSUE_NUMBER}"
+            export INSTALL_PATH=".agents/skills/${SKILL_NAME}"
+            export REPO_ROOT="$(pwd)"
+            export GITHUB_TOKEN="${PUSH_TOKEN}"
+            bash "$POST_INSTALL"
+            echo "✅ post-install.sh completed"
+          else
+            echo "No post-install.sh found, skipping"
+          fi
+
+      # ── Step 7: Switch to main branch, inject workflow env vars via YAML parser ─
+      - name: Switch to main branch and modify workflow YAML
+        if: env.INSTALL_FAILED != 'true' && env.REQUIRED_ENVS != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git checkout main
+          git pull origin main
+
+          WORKFLOW_FILE=".github/workflows/issue-${ISSUE_NUMBER}.yml"
+          if [[ ! -f "$WORKFLOW_FILE" ]]; then
+            echo "⚠️ Workflow file not found: $WORKFLOW_FILE"
+            exit 0
+          fi
+
+          if ! bash .github/workflows/lib/inject-workflow-env.sh \
+            "$WORKFLOW_FILE" \
+            "$REQUIRED_ENVS"; then
+            echo "INSTALL_FAILED=true" >> "$GITHUB_ENV"
+            echo "INSTALL_ERROR=[Step 7 - Set env vars] Failed to inject env vars automatically. Please confirm the workflow file format is correct, or check the logs above for details." >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          echo "✅ Env vars injected into $WORKFLOW_FILE"
+
+      # ── Step 8: Commit workflow changes on main branch ──────────────
+      - name: Commit workflow changes on main branch
+        if: env.INSTALL_FAILED != 'true' && env.REQUIRED_ENVS != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git add -A -- . ':(exclude).tmp/skills-source'
+          if ! git diff --cached --quiet; then
+            git commit -m "feat: add env vars for skill '${SKILL_NAME}' in issue-${ISSUE_NUMBER} workflow"
+            git push origin main
+            echo "✅ Pushed workflow changes to main"
+          else
+            echo "No workflow changes to commit"
+          fi
+
+      # ── Step 8.5: Validate the modified workflow YAML with actionlint ──
+      - name: Validate modified workflow YAML
+        if: env.INSTALL_FAILED != 'true' && env.REQUIRED_ENVS != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          WORKFLOW_FILE=".github/workflows/issue-${ISSUE_NUMBER}.yml"
+          if [[ ! -f "$WORKFLOW_FILE" ]]; then
+            echo "⚠️ Workflow file not found: $WORKFLOW_FILE, skipping validation"
+            exit 0
+          fi
+
+          echo "Validating workflow with actionlint..."
+          if npx -y github-actionlint "$WORKFLOW_FILE"; then
+            echo "✅ Workflow YAML validation passed"
+          else
+            echo "::warning::actionlint found issues in $WORKFLOW_FILE — please review"
+          fi
+
+      # ── Step 9: Clean up temp files ─────────────────────────────────
+      - name: Clean up temp files
+        if: always()
+        shell: bash
+        run: |
+          rm -rf .tmp/skills-source
+
+      # ── Step 10: Decide job status based on install result ──────────
+      - name: Check install result
+        if: always() && !cancelled()
+        shell: bash
+        run: |
+          if [[ "${INSTALL_FAILED:-}" == "true" ]]; then
+            echo "::error::❌ Skill installation failed"
+            echo "::error::Reason: ${INSTALL_ERROR:-unknown error (please check the logs from each step above)}"
+            echo "::error::If you need help, please screenshot this error message and send it to the admin."
+            exit 1
+          fi

@@ -1,0 +1,272 @@
+# This workflow picks up a given issue, runs Pi Coding Agent, and writes the result back as an issue comment and on the issue branch.
+# Note: the whole flow runs directly on a GitHub Actions runner; this YAML does not use a Docker container.
+name: '🦞 Lobster Task #N'
+
+# Two trigger modes are supported:
+# 1. workflow_dispatch: from the GitHub Actions UI after entering parameters manually
+# 2. repository_dispatch: called by an external system with a payload
+on:
+  # Allow manual triggering of this workflow — useful for debugging or for upstream systems to pass in parameters.
+  workflow_dispatch:
+    inputs:
+      # GitHub issue number to process.
+      issue_number:
+        description: 'GitHub issue number to process'
+        required: true
+        type: string
+      # Optional: if the upstream system has already created a progress comment, pass the comment id here to reuse it.
+      comment_id:
+        description: 'Existing issue comment ID to reuse for progress updates'
+        required: false
+        type: string
+      user_comment_id:
+        description: 'User issue comment ID used to locate artifacts/{user_comment_id}/user.md'
+        required: false
+        type: string
+      # Optional: source of the trigger, so the workflow can branch on the source or record analytics.
+      event_source:
+        description: 'Who is triggering this workflow: cron or issue'
+        required: false
+        type: choice
+        default: ''
+        options:
+          - ''
+          - cron
+          - issue
+      event_data:
+        description: 'Additional data related to the event that triggered this workflow'
+        required: false
+        type: string
+        default: ''
+  # Allow an external dispatcher to trigger this workflow via the API.
+  repository_dispatch:
+    types: [coding-agent]
+
+# Run name shown in the Actions UI — includes the issue number for easy identification.
+run-name: "🦞 Lobster #${{ github.event_name == 'repository_dispatch' && github.event.client_payload.issue_number || inputs.issue_number }}"
+
+# Prevent multiple agents running for the same repo+issue from overwriting each other.
+concurrency:
+  group: "coding-agent-${{ github.repository }}-${{ github.event_name == 'repository_dispatch' && github.event.client_payload.issue_number || inputs.issue_number }}"
+  cancel-in-progress: false
+
+# This workflow needs to push content and create/update issue comments.
+permissions:
+  contents: write
+  issues: write
+
+# Unify the payloads from different triggers into a shared env block, so downstream steps just read env.
+env:
+  # Unified issue number.
+  ISSUE_NUMBER: "${{ github.event_name == 'repository_dispatch' && github.event.client_payload.issue_number || inputs.issue_number }}"
+  # If a comment id is provided, update that comment.
+  COMMENT_ID: "${{ github.event_name == 'repository_dispatch' && github.event.client_payload.comment_id || inputs.comment_id }}"
+  # User comment id from this trigger; used to read the corresponding user.md.
+  USER_COMMENT_ID: "${{ github.event_name == 'repository_dispatch' && github.event.client_payload.user_comment_id || inputs.user_comment_id }}"
+  CLAW_LANGUAGE: "${{ vars.CLAW_LANGUAGE || 'en' }}"
+
+jobs:
+  # Single main job: validate, run the agent, and write back results on a GitHub-hosted runner.
+  run-agent:
+    # Runs directly on an Ubuntu runner — not via a Docker container.
+    runs-on: ubuntu-latest
+    # Cap the run at 90 minutes so the workflow never hangs forever.
+    timeout-minutes: 90
+
+    steps:
+      # Check out the target repo to the runner so we can switch branches, write files, and push.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: "issue-${{ github.event_name == 'repository_dispatch' && github.event.client_payload.issue_number || inputs.issue_number }}"
+          fetch-depth: 1
+
+      # Prepare the Node.js environment — Pi Coding Agent needs Node.js.
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Status update handler
+        if: ${{ (github.event_name == 'repository_dispatch' && github.event.client_payload.event_data == 'StatusUpdate') || inputs.event_data == 'StatusUpdate' }}
+        shell: bash
+        run: |
+          echo "StatusUpdate event detected, performing status update..."
+
+      # Read the user-selected provider from .pi/settings.json and set the corresponding API key env vars
+      - name: Read BYOK settings
+        if: ${{ (github.event_name == 'repository_dispatch' && github.event.client_payload.event_data != 'StatusUpdate') || inputs.event_data != 'StatusUpdate' }}
+        shell: bash
+        env:
+          SECRET_CLOUDFLARE_AI_API_TOKEN: ${{ secrets.CLOUDFLARE_AI_API_TOKEN }}
+          SECRET_CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SECRET_ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SECRET_OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SECRET_GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          SECRET_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SECRET_OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          SECRET_OLLAMA_API_KEY: ${{ secrets.OLLAMA_API_KEY }}
+        run: |
+          # Read the provider (Pi native provider id)
+          PROVIDER="openrouter"
+          if [ -f .pi/settings.json ]; then
+            PROVIDER=$(jq -r '.defaultProvider // "openrouter"' .pi/settings.json)
+          fi
+
+          # Set the corresponding Pi env vars for the provider
+          case "$PROVIDER" in
+            cloudflare-workers-ai)
+              echo "CLOUDFLARE_API_KEY=${SECRET_CLOUDFLARE_AI_API_TOKEN}" >> "$GITHUB_ENV"
+              echo "CLOUDFLARE_ACCOUNT_ID=${SECRET_CLOUDFLARE_ACCOUNT_ID}" >> "$GITHUB_ENV"
+              ;;
+            anthropic)
+              echo "ANTHROPIC_API_KEY=${SECRET_ANTHROPIC_API_KEY}" >> "$GITHUB_ENV"
+              ;;
+            openai)
+              echo "OPENAI_API_KEY=${SECRET_OPENAI_API_KEY}" >> "$GITHUB_ENV"
+              ;;
+            groq)
+              echo "GROQ_API_KEY=${SECRET_GROQ_API_KEY}" >> "$GITHUB_ENV"
+              ;;
+            google)
+              echo "GEMINI_API_KEY=${SECRET_GEMINI_API_KEY}" >> "$GITHUB_ENV"
+              ;;
+            openrouter)
+              echo "OPENROUTER_API_KEY=${SECRET_OPENROUTER_API_KEY}" >> "$GITHUB_ENV"
+              ;;
+            ollama-cloud)
+              echo "OLLAMA_API_KEY=${SECRET_OLLAMA_API_KEY}" >> "$GITHUB_ENV"
+              ;;
+            *)
+              echo "Unknown provider: $PROVIDER"
+              exit 1
+              ;;
+          esac
+
+          echo "PI_PROVIDER=$PROVIDER" >> "$GITHUB_ENV"
+
+      - name: Run task
+        if: ${{ (github.event_name == 'repository_dispatch' && github.event.client_payload.event_data != 'StatusUpdate') || inputs.event_data != 'StatusUpdate' }}
+        id: pi_task
+        shell: bash
+        env:
+          PI_CODING_AGENT_DIR: ".pi"
+        run: |
+          RAW_ISSUE_NUMBER='${{ env.ISSUE_NUMBER }}'
+          RAW_COMMENT_ID='${{ env.COMMENT_ID }}'
+          RAW_USER_COMMENT_ID='${{ env.USER_COMMENT_ID }}'
+
+          ISSUE_NUMBER="${RAW_ISSUE_NUMBER%\"}"
+          ISSUE_NUMBER="${ISSUE_NUMBER#\"}"
+          COMMENT_ID="${RAW_COMMENT_ID%\"}"
+          COMMENT_ID="${COMMENT_ID#\"}"
+          USER_COMMENT_ID="${RAW_USER_COMMENT_ID%\"}"
+          USER_COMMENT_ID="${USER_COMMENT_ID#\"}"
+
+          if [[ -z "$COMMENT_ID" || -z "$USER_COMMENT_ID" ]]; then
+            echo "COMMENT_ID or USER_COMMENT_ID is missing"
+            exit 1
+          fi
+
+          mkdir -p "artifacts/${COMMENT_ID}"
+
+          git fetch origin "issue-${ISSUE_NUMBER}" --depth=1
+          git checkout -B "issue-${ISSUE_NUMBER}" "origin/issue-${ISSUE_NUMBER}"
+
+          USER_PROMPT_FILE="artifacts/${USER_COMMENT_ID}/user.md"
+          for attempt in {1..10}; do
+            if [[ -f "$USER_PROMPT_FILE" ]]; then
+              break
+            fi
+            echo "Waiting for $USER_PROMPT_FILE (attempt ${attempt}/10)"
+            git fetch origin "issue-${ISSUE_NUMBER}" --depth=1
+            git reset --hard "origin/issue-${ISSUE_NUMBER}"
+            sleep 2
+          done
+
+          if [[ ! -f "$USER_PROMPT_FILE" ]]; then
+            echo "Missing user prompt file: $USER_PROMPT_FILE"
+            ls -la artifacts || true
+            find artifacts -maxdepth 2 -type f | sort || true
+            exit 1
+          fi
+
+          USER_PROMPT_CONTENT="$(cat "$USER_PROMPT_FILE")"
+
+          # Pin the Pi Coding Agent version to avoid non-reproducible results or breaking changes from @latest.
+          # Can be overridden via the repo variable PI_CODING_AGENT_VERSION.
+          PI_CODING_AGENT_VERSION='${{ vars.PI_CODING_AGENT_VERSION }}'
+          : "${PI_CODING_AGENT_VERSION:=0.83.0}"
+          PI_CODING_AGENT_PKG="@earendil-works/pi-coding-agent"
+
+          # If ollama-cloud is selected, install the pi-ollama-cloud extension first
+          if [[ "${PI_PROVIDER}" == "ollama-cloud" ]]; then
+            echo "Installing pi-ollama-cloud extension..."
+            npx -y "${PI_CODING_AGENT_PKG}@${PI_CODING_AGENT_VERSION}" install npm:pi-ollama-cloud
+          fi
+
+          # Pi reads settings.json and models.json from the template via PI_CODING_AGENT_DIR=.pi
+          # Run with error loglevel so npm warnings don't pollute error.log
+          set +e
+          set -o pipefail
+          npm_config_loglevel=error npx -y "${PI_CODING_AGENT_PKG}@${PI_CODING_AGENT_VERSION}" \
+            -p "Please write the final result to artifacts/${COMMENT_ID}/result.md . My prompt is: ${USER_PROMPT_CONTENT}" \
+            --mode json \
+            2> "artifacts/${COMMENT_ID}/error.log" \
+            | jq -c 'select(.type | test("^(session|agent_|turn_|message_start|message_end|tool_|error|result|compaction_|auto_retry_)"))' \
+            > "artifacts/${COMMENT_ID}/output.jsonl"
+          EXIT_CODE=$?
+          set +o pipefail
+          set -e
+
+          # Pi exits with 0 even on provider errors, so we need to detect errorMessage from output.jsonl
+          # Append it to error.log and fail the step so the failure handler can run
+          HAS_ERROR=0
+          if jq -e '.. | objects | select((.errorMessage // "") != "")' \
+              "artifacts/${COMMENT_ID}/output.jsonl" > /dev/null; then
+            jq -r '.. | objects | .errorMessage? // empty' \
+              "artifacts/${COMMENT_ID}/output.jsonl" \
+              | awk 'NF && !seen[$0]++' \
+              >> "artifacts/${COMMENT_ID}/error.log"
+            echo "Pi reported errorMessage." >&2
+            HAS_ERROR=1
+          fi
+
+          if [[ $EXIT_CODE -ne 0 || $HAS_ERROR -ne 0 ]]; then
+            if [[ -s "artifacts/${COMMENT_ID}/result.md" ]]; then
+              echo "Warning: Pi exited with code ${EXIT_CODE} or reported errorMessage, but result.md was generated."
+              exit 0
+            else
+              echo "Pi execution failed; marking step as failed." >&2
+              exit 1
+            fi
+          fi
+
+      - name: Push result
+        if: always()
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update results for issue #${{ env.ISSUE_NUMBER }}"
+          fi
+          git push origin "issue-${{ env.ISSUE_NUMBER }}" --force
+
+      - name: Task failure handling
+        if: failure() && steps.pi_task.conclusion == 'failure'
+        uses: jeffsia-blacksmith/altShiftClawToolkit/actions/error-handler-action@v1
+        with:
+          output_file: artifacts/${{ env.COMMENT_ID }}/error.log
+          result_file: artifacts/${{ env.COMMENT_ID }}/result.md
+
+      - name: Report execution result
+        if: always()
+        uses: jeffsia-blacksmith/altShiftClawToolkit/actions/update-comment-action@v1
+        with:
+          issue_number: ${{ env.ISSUE_NUMBER }}
+          comment_id: ${{ env.COMMENT_ID }}
+          message_file: artifacts/${{ env.COMMENT_ID }}/result.md

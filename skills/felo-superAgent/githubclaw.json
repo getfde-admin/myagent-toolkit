@@ -1,0 +1,11 @@
+{
+  "name": "Felo SuperAgent",
+  "tagline": "AI 串流对话与 LiveDoc 画布协作，支援标志设计、电商图片与多轮连续问答",
+  "description": "Felo SuperAgent 透过 Felo Open API 与 SuperAgent 进行 SSE 串流对话，支援多轮连续问答、LiveDoc 画布资源追踪与品牌风格写作。可自动呼叫图像生成、研究报告、PPT 制作、HTML 产生与 X 搜寻等工具，并提供风格库选择功能，适合标志设计、电商图片生成与深度主题探索。",
+  "category": "conversation",
+  "tags": ["felo", "superagent", "chat", "streaming", "livedoc", "logo", "image-generation"],
+  "version": "1.0.0",
+  "support_url": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit/issues",
+  "homepage": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit",
+  "requireEnv": ["FELO_API_KEY"]
+}

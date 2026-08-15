@@ -1,0 +1,11 @@
+{
+  "name": "Felo Slides",
+  "tagline": "一句话自动产生完整简报投影片，回传可分享的投影片连结",
+  "description": "Felo Slides 透过 Felo PPT Task API，将自然语言描述自动转换为完整的简报投影片。支援主题、大纲或笔记作为输入，产生完成后回传可直接分享的投影片网址，适合快速制作报告、提案或教学简报。",
+  "category": "content",
+  "tags": ["felo", "slides", "ppt", "presentation", "content-generation"],
+  "version": "1.0.0",
+  "support_url": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit/issues",
+  "homepage": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit",
+  "requireEnv": ["FELO_API_KEY"]
+}

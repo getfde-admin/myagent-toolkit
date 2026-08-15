@@ -1,0 +1,11 @@
+{
+  "name": "Gemini Nanobanana",
+  "tagline": "AI 图片生成与编辑，支援文字生图、多图合成",
+  "description": "Gemini Nanobanana 使用 Gemini Nano Banana 2 模型进行 AI 图片生成与编辑。支援文字生图、图片编辑、多图合成（最多 14 张参考图）、Google Search grounding，并可自订长宽比与解析度，适合设计、创作与视觉内容产出。",
+  "category": "content",
+  "tags": ["gemini", "image-generation", "nanobanana", "editing", "ai-art"],
+  "version": "1.0.0",
+  "support_url": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit/issues",
+  "homepage": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit",
+  "requireEnv": ["GEMINI_API_KEY"]
+}

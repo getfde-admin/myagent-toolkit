@@ -1,0 +1,11 @@
+{
+  "name": "Felo Web Fetch",
+  "tagline": "网页内容撷取工具，将网址转换为干净的文字或 Markdown",
+  "description": "Felo Web Fetch 透过 Felo Web Extract API 撷取网页内容，支援输出为 HTML、Markdown 或纯文字格式。可使用 CSS 选择器精准撷取特定区块，并提供阅读模式自动过滤广告杂讯，适合资料搜集、文章整理与网页备份。",
+  "category": "data",
+  "tags": ["felo", "web-fetch", "scraping", "markdown", "content-extraction"],
+  "version": "1.0.0",
+  "support_url": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit/issues",
+  "homepage": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit",
+  "requireEnv": ["FELO_API_KEY"]
+}

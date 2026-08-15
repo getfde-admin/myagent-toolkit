@@ -1,0 +1,11 @@
+{
+  "name": "Gemini Summary",
+  "tagline": "多格式内容摘要工具，自动辨识输入类型并输出繁体中文摘要",
+  "description": "Gemini Summary 可自动侦测输入来源类型（网页、PDF、影片、音讯），透过 Gemini Interactions API 产生结构化的繁体中文摘要。支援 YouTube 影片、本机档案与远端 URL，一键取得精简重点整理，适合快速掌握文章、报告与影音内容。",
+  "category": "content",
+  "tags": ["gemini", "summary", "pdf", "video", "content-analysis"],
+  "version": "1.0.0",
+  "support_url": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit/issues",
+  "homepage": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit",
+  "requireEnv": ["GEMINI_API_KEY"]
+}

@@ -1,0 +1,125 @@
+# Skill removal workflow: removes a skill from the workspace of the specified issue.
+name: '🗑️ Remove Skill'
+run-name: "Remove skill: ${{ inputs.skill_name }} | req:${{ inputs.request_id }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      skill_name:
+        description: 'Skill name'
+        required: true
+        type: string
+      issue_number:
+        description: 'Target issue number'
+        required: true
+        type: string
+      request_id:
+        description: 'Request ID (for Core notification tracking)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: "skills-remove-${{ github.repository }}-${{ inputs.skill_name }}-${{ inputs.issue_number }}"
+  cancel-in-progress: false
+
+env:
+  SKILL_NAME: "${{ inputs.skill_name }}"
+  ISSUE_NUMBER: "${{ inputs.issue_number }}"
+  PUSH_TOKEN: "${{ secrets.CLAW_SYS_GITHUB_TOKEN || github.token }}"
+  AUTOMATION_GIT_USER_NAME: "${{ vars['AUTOMATION_GIT_USER_NAME'] || 'github-actions[bot]' }}"
+  AUTOMATION_GIT_USER_EMAIL: "${{ vars['AUTOMATION_GIT_USER_EMAIL'] || 'github-actions[bot]@users.noreply.github.com' }}"
+
+jobs:
+  remove-skill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+
+      # ── Step 1: Validate input parameters ─────────────────────────────
+      - name: Validate input parameters
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${SKILL_NAME}" ]]; then
+            echo "::error::skill_name is required"
+            exit 1
+          fi
+          if [[ -z "${ISSUE_NUMBER}" ]]; then
+            echo "::error::issue_number is required"
+            exit 1
+          fi
+          echo "skill_name=${SKILL_NAME}"
+          echo "issue_number=${ISSUE_NUMBER}"
+
+      # ── Step 2: Checkout repository ──────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ env.PUSH_TOKEN }}
+
+      # ── Step 3: Switch to issue branch and remove skill ─────────────
+      - name: Switch to issue branch and remove skill
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TARGET_BRANCH="issue-${ISSUE_NUMBER}"
+          SKILL_PATH=".agents/skills/${SKILL_NAME}"
+
+          git config user.name "${AUTOMATION_GIT_USER_NAME}"
+          git config user.email "${AUTOMATION_GIT_USER_EMAIL}"
+          git remote set-url origin "https://x-access-token:${PUSH_TOKEN}@github.com/${{ github.repository }}.git"
+
+          git fetch --no-tags origin "${TARGET_BRANCH}" || {
+            echo "REMOVE_FAILED=true" >> "$GITHUB_ENV"
+            echo "REMOVE_ERROR=branch ${TARGET_BRANCH} does not exist" >> "$GITHUB_ENV"
+            exit 0
+          }
+
+          git checkout -B "${TARGET_BRANCH}" "origin/${TARGET_BRANCH}"
+
+          if [[ ! -d "${SKILL_PATH}" ]]; then
+            echo "REMOVE_FAILED=true" >> "$GITHUB_ENV"
+            echo "REMOVE_ERROR=skill '${SKILL_NAME}' is not installed on ${TARGET_BRANCH}" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          rm -rf "${SKILL_PATH}"
+          echo "✅ Removed ${SKILL_PATH}"
+
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            echo "REMOVE_RESULT=no_changes" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          git commit -m "feat: remove skill '${SKILL_NAME}' from issue #${ISSUE_NUMBER}"
+
+          if git push origin "HEAD:${TARGET_BRANCH}"; then
+            echo "✅ Pushed changes to ${TARGET_BRANCH}"
+            echo "REMOVE_RESULT=success" >> "$GITHUB_ENV"
+          else
+            echo "::warning::Normal push failed, trying force-with-lease..."
+            if git push --force-with-lease origin "HEAD:${TARGET_BRANCH}"; then
+              echo "✅ Force-pushed changes to ${TARGET_BRANCH}"
+              echo "REMOVE_RESULT=success" >> "$GITHUB_ENV"
+            else
+              echo "REMOVE_FAILED=true" >> "$GITHUB_ENV"
+              echo "REMOVE_ERROR=push to ${TARGET_BRANCH} failed" >> "$GITHUB_ENV"
+            fi
+          fi
+
+      # ── Step 4: Check removal result ──────────────────────────────
+      - name: Check removal result
+        if: always() && !cancelled()
+        shell: bash
+        run: |
+          if [[ "${REMOVE_FAILED:-}" == "true" ]]; then
+            echo "::error::skill removal failed: ${REMOVE_ERROR:-unknown error}"
+            exit 1
+          fi

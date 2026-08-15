@@ -1,0 +1,11 @@
+{
+  "name": "Telegram Notify",
+  "tagline": "Telegram 讯息通知，自动推播 CI/CD 状态与任务结果",
+  "description": "Telegram Notify 透过 Telegram Bot API 发送通知讯息，支援纯文字、HTML 与 MarkdownV2 格式。可整合 GitHub Actions 工作流程，在 build 完成、部署成功或任务结束时自动推播到指定群组，仅需 shell script 与 curl 即可运作。",
+  "category": "integration",
+  "tags": ["telegram", "notification", "ci-cd", "messaging", "webhook"],
+  "version": "1.1.0",
+  "support_url": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit/issues",
+  "homepage": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit",
+  "requireEnv": ["TELEGRAM_NOTIFY_BOT_TOKEN"]
+}

@@ -1,0 +1,83 @@
+name: "Update Issue Comment"
+description: "Updates a GitHub issue comment with results or creates a new one"
+inputs:
+  issue_number:
+    description: "The issue number to comment on"
+    required: false
+  comment_id:
+    description: "The comment ID or task ID"
+    required: false
+  message_file:
+    description: "File containing the message/result content"
+    required: false
+  body_file:
+    description: "File containing the content body (legacy)"
+    required: false
+  brain_meta:
+    description: "HTML comment tag for downstream identification"
+    required: false
+    default: '<!-- githubclaw-brain-result: {"source":"githubclaw-worker-brain"} -->'
+  claw_language:
+    description: "Language for fallback messages (e.g., 'en', 'zh-TW')"
+    required: false
+runs:
+  using: "composite"
+  steps:
+    - name: Post or Update Comment
+      env:
+        GH_TOKEN: ${{ github.token }}
+        INPUT_ISSUE_NUMBER: ${{ inputs.issue_number }}
+        PAYLOAD_ISSUE_NUMBER: ${{ github.event.client_payload.issue_number }}
+        INPUT_COMMENT_ID: ${{ inputs.comment_id }}
+        PAYLOAD_COMMENT_ID: ${{ github.event.client_payload.comment_id }}
+        INPUT_MESSAGE_FILE: ${{ inputs.message_file }}
+        INPUT_BODY_FILE: ${{ inputs.body_file }}
+        INPUT_BRAIN_META: ${{ inputs.brain_meta }}
+        INPUT_CLAW_LANGUAGE: ${{ inputs.claw_language }}
+      run: |
+        CLAW_LANGUAGE="${INPUT_CLAW_LANGUAGE:-${CLAW_LANGUAGE:-en}}"
+        ISSUE_NUMBER="${INPUT_ISSUE_NUMBER:-$PAYLOAD_ISSUE_NUMBER}"
+        COMMENT_ID="${INPUT_COMMENT_ID:-$PAYLOAD_COMMENT_ID}"
+        
+        FILE_PATH="${INPUT_MESSAGE_FILE:-$INPUT_BODY_FILE}"
+        if [ -z "$FILE_PATH" ] || [ ! -f "$FILE_PATH" ] || [ ! -s "$FILE_PATH" ]; then
+          echo "Message file ($FILE_PATH) not found or empty, using fallback."
+          if [ "$CLAW_LANGUAGE" = "en" ]; then
+            BODY="⚠️ Execution completed, but no result file was found."
+          else
+            BODY="⚠️ 执行完毕，但未产生或找不到结果文件。"
+          fi
+        else
+          BODY=$(cat "$FILE_PATH")
+        fi
+        
+        # Append brain_meta if not already present
+        BRAIN_META="${INPUT_BRAIN_META}"
+        if [ -z "$BRAIN_META" ]; then
+          BRAIN_META='<!-- githubclaw-brain-result: {"source":"githubclaw-worker-brain"} -->'
+        fi
+        if [[ "$BODY" != *"$BRAIN_META"* ]] && [[ "$BODY" != *"githubclaw-brain-result"* ]]; then
+          BODY="${BODY}"$'\n\n'"${BRAIN_META}"
+        fi
+        
+        if [ -n "$COMMENT_ID" ] && [ "$COMMENT_ID" != "null" ] && [ "$COMMENT_ID" != "0" ]; then
+          echo "Updating existing comment #$COMMENT_ID..."
+          for attempt in {1..5}; do
+            if gh api -X PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${COMMENT_ID}" -f body="$BODY"; then
+              echo "Comment #$COMMENT_ID updated successfully."
+              exit 0
+            fi
+            echo "Failed to update comment (attempt $attempt/5), retrying in 6s..."
+            sleep 6
+          done
+          echo "Warning: Could not update comment #$COMMENT_ID after 5 attempts. Falling back to creating new comment..."
+        fi
+        
+        if [ -z "$ISSUE_NUMBER" ] || [ "$ISSUE_NUMBER" = "null" ]; then
+          echo "No issue number provided, cannot create new comment."
+          exit 0
+        fi
+        
+        echo "Creating new comment on issue #$ISSUE_NUMBER..."
+        gh issue comment "$ISSUE_NUMBER" --body "$BODY"
+      shell: bash

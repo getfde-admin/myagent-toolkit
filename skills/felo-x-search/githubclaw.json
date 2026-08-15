@@ -1,0 +1,11 @@
+{
+  "name": "Felo X Search",
+  "tagline": "搜寻 X（Twitter）使用者、推文与回复，掌握社群动态",
+  "description": "Felo X Search 透过 Felo X Search API 搜寻 X（Twitter）平台资料，支援使用者查询、推文搜寻、使用者时间轴与推文回复。结果以 Markdown 格式呈现并附带互动数据，适合社群媒体监控与资料分析。",
+  "category": "data",
+  "tags": ["felo", "twitter", "x-search", "social-media", "search"],
+  "version": "1.0.0",
+  "support_url": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit/issues",
+  "homepage": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit",
+  "requireEnv": ["FELO_API_KEY"]
+}

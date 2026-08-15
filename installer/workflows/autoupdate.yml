@@ -1,0 +1,167 @@
+name: 🦞 Lobster Burger Core Update
+
+on:
+  schedule:
+    - cron: "0 0 * * *" # Daily UTC 00:00 (UTC+8 08:00)
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Force the update (ignore version comparison)"
+        type: boolean
+        default: false
+      sync_command:
+        description: "Sync Telegram quick commands after the update"
+        type: boolean
+        default: false
+      request_id:
+        description: "Telegram workflow notification request id"
+        type: string
+        default: ""
+
+run-name: >-
+  🦞 Lobster Burger Core Update: ${{ github.repository }}${{ github.event_name == 'workflow_dispatch' && inputs.request_id != '' && format(' | req:{0}', inputs.request_id) || '' }}
+
+concurrency:
+  group: auto-update-${{ github.repository }}
+  cancel-in-progress: false
+
+env:
+  PACKAGE_MANIFEST_URL: https://jeffsia-blacksmith.github.io/altShiftClawCore/github-claw-worker-package.json
+
+permissions:
+  contents: write
+
+jobs:
+  check-version:
+    name: Version Check
+    runs-on: ubuntu-latest
+    permissions: {}
+    outputs:
+      should_update: ${{ steps.compare.outputs.should_update }}
+      remote_version: ${{ steps.compare.outputs.remote_version }}
+      remote_revision: ${{ steps.compare.outputs.remote_revision }}
+
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Read remote package manifest
+        id: compare
+        env:
+          STORED_VERSION: ${{ vars.LOBSTER_BURGER_PACKAGE_VERSION }}
+          STORED_REVISION: ${{ vars.LOBSTER_BURGER_PACKAGE_REVISION }}
+          FORCE: ${{ inputs.force }}
+        run: |
+          set -euo pipefail
+
+          echo "🔍 Reading remote package manifest..."
+          RESPONSE="$(curl -fsSL "$PACKAGE_MANIFEST_URL")"
+
+          REMOTE_VERSION="$(echo "$RESPONSE" | jq -r '.version // empty')"
+          REMOTE_REVISION="$(echo "$RESPONSE" | jq -r '.revision // empty')"
+          echo "remote_version=$REMOTE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "remote_revision=$REMOTE_REVISION" >> "$GITHUB_OUTPUT"
+          echo "🏷️ Remote version: ${REMOTE_VERSION:-not provided}"
+          echo "🔖 Remote revision: ${REMOTE_REVISION:-not provided}"
+          echo "📌 Stored version: ${STORED_VERSION:-not set}"
+          echo "📌 Stored revision: ${STORED_REVISION:-not set}"
+
+          if [[ "${FORCE:-false}" == "true" ]]; then
+            echo "⚡ Force mode, skipping version comparison"
+            echo "should_update=true" >> "$GITHUB_OUTPUT"
+          elif [[ -z "$REMOTE_VERSION" && -z "$REMOTE_REVISION" ]]; then
+            echo "::error::manifest is missing version and revision, cannot compare"
+            exit 1
+          elif [[ -n "$REMOTE_REVISION" ]]; then
+            if [[ "$REMOTE_REVISION" == "${STORED_REVISION:-}" ]]; then
+              echo "✅ Revision unchanged ($REMOTE_REVISION), skipping this update"
+              echo "should_update=false" >> "$GITHUB_OUTPUT"
+            elif [[ -z "${STORED_REVISION:-}" ]]; then
+              echo "📋 No stored revision, performing first package sync"
+              echo "should_update=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "🚀 Revision changed (${STORED_REVISION:-not set} -> $REMOTE_REVISION), preparing to trigger deploy"
+              echo "should_update=true" >> "$GITHUB_OUTPUT"
+            fi
+          elif [[ -n "$REMOTE_VERSION" && "$REMOTE_VERSION" == "${STORED_VERSION:-}" ]]; then
+            echo "✅ Version unchanged ($REMOTE_VERSION), skipping this update"
+            echo "should_update=false" >> "$GITHUB_OUTPUT"
+          elif [[ -z "${STORED_VERSION:-}" && -z "${STORED_REVISION:-}" ]]; then
+            echo "📋 No deployed package info stored, performing first sync"
+            echo "should_update=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "🚀 Package change detected, preparing to trigger deploy"
+            echo "should_update=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip summary
+        if: steps.compare.outputs.should_update == 'false'
+        env:
+          REMOTE_VERSION: ${{ steps.compare.outputs.remote_version }}
+          REMOTE_REVISION: ${{ steps.compare.outputs.remote_revision }}
+          STORED_VERSION: ${{ vars.LOBSTER_BURGER_PACKAGE_VERSION }}
+          STORED_REVISION: ${{ vars.LOBSTER_BURGER_PACKAGE_REVISION }}
+        run: |
+          echo "### 🦞 Auto Update Result" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Version unchanged, skipping this update.**" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|------|-----|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Repository | \`${GITHUB_REPOSITORY}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Current version | \`${REMOTE_VERSION:-not provided}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Current revision | \`${REMOTE_REVISION:-not provided}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Stored version | \`${STORED_VERSION:-not set}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Stored revision | \`${STORED_REVISION:-not set}\` |" >> "$GITHUB_STEP_SUMMARY"
+
+  deploy:
+    name: Trigger deploy
+    needs: check-version
+    if: needs.check-version.outputs.should_update == 'true'
+    uses: ./.github/workflows/deploy-lobster-burger.yml
+    secrets: inherit
+
+  update-state:
+    name: Update deployed version metadata
+    needs:
+      - check-version
+      - deploy
+    if: needs.deploy.result == 'success'
+    runs-on: ubuntu-latest
+    permissions: {}
+    env:
+      GH_TOKEN: ${{ secrets.CLAW_SYS_GITHUB_TOKEN }}
+      REMOTE_VERSION: ${{ needs.check-version.outputs.remote_version }}
+      REMOTE_REVISION: ${{ needs.check-version.outputs.remote_revision }}
+    steps:
+      - name: Persist package metadata
+        run: |
+          set -euo pipefail
+
+          if [[ -n "${REMOTE_VERSION:-}" ]]; then
+            gh variable set LOBSTER_BURGER_PACKAGE_VERSION \
+              --body "$REMOTE_VERSION" \
+              --repo "$GITHUB_REPOSITORY"
+            echo "✅ Updated LOBSTER_BURGER_PACKAGE_VERSION -> $REMOTE_VERSION"
+          fi
+
+          if [[ -n "${REMOTE_REVISION:-}" ]]; then
+            gh variable set LOBSTER_BURGER_PACKAGE_REVISION \
+              --body "$REMOTE_REVISION" \
+              --repo "$GITHUB_REPOSITORY"
+            echo "✅ Updated LOBSTER_BURGER_PACKAGE_REVISION -> $REMOTE_REVISION"
+          fi
+
+      - name: Summary
+        run: |
+          echo "### 🦞 Auto Update Result" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Version comparison and deployment completed.**" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|------|-----|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Repository | \`${GITHUB_REPOSITORY}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Package version | \`${REMOTE_VERSION:-not provided}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Package revision | \`${REMOTE_REVISION:-not provided}\` |" >> "$GITHUB_STEP_SUMMARY"

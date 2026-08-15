@@ -1,0 +1,11 @@
+{
+  "name": "Gemini Audio Transcriber",
+  "tagline": "音讯转繁体中文逐字稿，自动辨识多位说话者",
+  "description": "Gemini Audio Transcriber 使用 Gemini Interactions API 的原生音讯理解能力，将音讯档案转录为繁体中文逐字稿。支援多种格式（MP3、WAV、OGG、FLAC 等），可自动标记多位说话者，输出可搭配 meeting-note-formatter 整理为结构化会议纪录。",
+  "category": "content",
+  "tags": ["gemini", "audio", "transcription", "speech-to-text", "meeting-notes"],
+  "version": "1.0.0",
+  "support_url": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit/issues",
+  "homepage": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit",
+  "requireEnv": ["GEMINI_API_KEY"]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "gemini-deep-researcher-skill",
+  "version": "1.0.0",
+  "description": "深度研究报告工具 — 使用 Gemini Deep Research agent 产生含引用来源的繁中研究报告",
+  "type": "module",
+  "scripts": {
+    "build": "npx -y bun build src/research.js --outfile scripts/research.js --target node --minify",
+    "research": "node scripts/research.js"
+  },
+  "dependencies": {
+    "@google/genai": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

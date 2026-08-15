@@ -1,0 +1,11 @@
+{
+  "name": "Gemini Lyria-3",
+  "tagline": "AI 音乐生成，从歌词或提示词一键产出音轨",
+  "description": "Gemini Lyria-3 使用 Google Lyria-3 模型，根据使用者提供的歌词或文字描述生成 AI 音乐音轨。支援串流输出、多段音轨储存，并自动以结构化格式回报生成结果，适合音乐创作、作曲辅助与自动化音讯生成情境。",
+  "category": "content",
+  "tags": ["gemini", "lyria", "music-generation", "audio", "ai-music"],
+  "version": "1.0.0",
+  "support_url": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit/issues",
+  "homepage": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit",
+  "requireEnv": ["GEMINI_API_KEY"]
+}

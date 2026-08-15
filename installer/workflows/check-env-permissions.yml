@@ -1,0 +1,1193 @@
+name: 🛡️ Lobster Burger Environment Variables Check
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+run-name: "🔍 Lobster Burger Environment Variables Check"
+
+concurrency:
+  group: check-env-permissions-${{ github.repository }}
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  check-env-permissions:
+    name: 🛡️ Lobster Burger Environment Variables Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      # ── Required Secrets ──────────────────────────────────────────────────
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLAW_SYS_GITHUB_TOKEN: ${{ secrets.CLAW_SYS_GITHUB_TOKEN }}
+      GH_WEBHOOK_SECRET: ${{ secrets.GH_WEBHOOK_SECRET }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
+      # ── Optional Secrets ──────────────────────────────────────────────────
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      CLAWBRAIN_API_KEY: ${{ secrets.CLAWBRAIN_API_KEY }}
+      FELO_API_KEY: ${{ secrets.FELO_API_KEY }}
+      # ── Repository Variables ──────────────────────────────────────────────
+      WORKER_NAME: ${{ vars.WORKER_NAME }}
+      WORKERS_SUBDOMAIN: ${{ vars.WORKERS_SUBDOMAIN }}
+      WORKER_URL: ${{ vars.WORKER_URL }}
+      CLAWBRAIN_PROVIDER: ${{ vars.CLAWBRAIN_PROVIDER }}
+      CLAWBRAIN_MODEL: ${{ vars.CLAWBRAIN_MODEL }}
+
+    steps:
+
+      # ══════════════════════════════════════════════════════════════════════
+      # CLOUDFLARE_API_TOKEN
+      # ══════════════════════════════════════════════════════════════════════
+
+      - name: "[TC-CF01] CLOUDFLARE_API_TOKEN — exists"
+        id: tc_cf01
+        continue-on-error: true
+        run: |
+          if [[ -z "${CLOUDFLARE_API_TOKEN:-}" ]]; then
+            echo "::error::CLOUDFLARE_API_TOKEN is not set (Settings → Secrets → Actions)"
+            exit 1
+          fi
+          echo "✅ CLOUDFLARE_API_TOKEN is set"
+
+      - name: "[TC-CF02] CLOUDFLARE_API_TOKEN — format check (length >= 30 chars)"
+        id: tc_cf02
+        continue-on-error: true
+        run: |
+          if [[ -z "${CLOUDFLARE_API_TOKEN:-}" ]]; then
+            echo "::warning::CLOUDFLARE_API_TOKEN is not set, skipping format check"
+            exit 0
+          fi
+          len=${#CLOUDFLARE_API_TOKEN}
+          if [[ $len -lt 30 ]]; then
+            echo "::error::CLOUDFLARE_API_TOKEN has an abnormal length (${len} chars, expected at least 30)"
+            exit 1
+          fi
+          echo "✅ CLOUDFLARE_API_TOKEN length is normal (${len} chars)"
+
+      - name: "[TC-CF03] CLOUDFLARE_API_TOKEN — Cloudflare API Token verification"
+        id: tc_cf03
+        continue-on-error: true
+        run: |
+          if [[ -z "${CLOUDFLARE_API_TOKEN:-}" ]]; then
+            echo "::warning::CLOUDFLARE_API_TOKEN is not set, skipping API verification"
+            exit 0
+          fi
+          RESPONSE=$(curl -sS \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            "https://api.cloudflare.com/client/v4/user/tokens/verify")
+          SUCCESS=$(echo "$RESPONSE" | jq -r '.success // false')
+          if [[ "$SUCCESS" != "true" ]]; then
+            echo "::error::CLOUDFLARE_API_TOKEN verification failed: $(echo "$RESPONSE" | jq -c '.errors // []')"
+            exit 1
+          fi
+          STATUS=$(echo "$RESPONSE" | jq -r '.result.status // "unknown"')
+          echo "✅ CLOUDFLARE_API_TOKEN is valid (status: ${STATUS})"
+
+      # ══════════════════════════════════════════════════════════════════════
+      # CLOUDFLARE_ACCOUNT_ID
+      # ══════════════════════════════════════════════════════════════════════
+
+      - name: "[TC-CF04] CLOUDFLARE_ACCOUNT_ID — exists"
+        id: tc_cf04
+        continue-on-error: true
+        run: |
+          if [[ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]]; then
+            echo "::error::CLOUDFLARE_ACCOUNT_ID is not set (Settings → Secrets → Actions)"
+            exit 1
+          fi
+          echo "✅ CLOUDFLARE_ACCOUNT_ID is set"
+
+      - name: "[TC-CF05] CLOUDFLARE_ACCOUNT_ID — format check (32-char hex)"
+        id: tc_cf05
+        continue-on-error: true
+        run: |
+          if [[ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]]; then
+            echo "::warning::CLOUDFLARE_ACCOUNT_ID is not set, skipping format check"
+            exit 0
+          fi
+          if ! [[ "${CLOUDFLARE_ACCOUNT_ID}" =~ ^[0-9a-f]{32}$ ]]; then
+            echo "::error::CLOUDFLARE_ACCOUNT_ID format mismatch (expected 32-char lowercase hex, actual length: ${#CLOUDFLARE_ACCOUNT_ID})"
+            exit 1
+          fi
+          echo "✅ CLOUDFLARE_ACCOUNT_ID format is correct (32-char hex)"
+
+      - name: "[TC-CF06] CLOUDFLARE_ACCOUNT_ID — can access Workers under the account"
+        id: tc_cf06
+        continue-on-error: true
+        run: |
+          if [[ -z "${CLOUDFLARE_API_TOKEN:-}" || -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]]; then
+            echo "::warning::CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID is not set, skipping account access check"
+            exit 0
+          fi
+          RESPONSE=$(curl -sS \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts")
+          SUCCESS=$(echo "$RESPONSE" | jq -r '.success // false')
+          if [[ "$SUCCESS" != "true" ]]; then
+            echo "::error::Could not access account Workers with CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID: $(echo "$RESPONSE" | jq -c '.errors // []')"
+            exit 1
+          fi
+          WORKER_COUNT=$(echo "$RESPONSE" | jq '.result | length')
+          echo "✅ Can access Workers under the Cloudflare account (Worker count: ${WORKER_COUNT})"
+
+      # ══════════════════════════════════════════════════════════════════════
+      # CLAW_SYS_GITHUB_TOKEN
+      # ══════════════════════════════════════════════════════════════════════
+
+      - name: "[TC-GH01] CLAW_SYS_GITHUB_TOKEN — exists"
+        id: tc_gh01
+        continue-on-error: true
+        run: |
+          if [[ -z "${CLAW_SYS_GITHUB_TOKEN:-}" ]]; then
+            echo "::error::CLAW_SYS_GITHUB_TOKEN is not set (Settings → Secrets → Actions)"
+            exit 1
+          fi
+          echo "✅ CLAW_SYS_GITHUB_TOKEN is set"
+
+      - name: "[TC-GH02] CLAW_SYS_GITHUB_TOKEN — format check (known GitHub PAT formats)"
+        id: tc_gh02
+        continue-on-error: true
+        run: |
+          if [[ -z "${CLAW_SYS_GITHUB_TOKEN:-}" ]]; then
+            echo "::warning::CLAW_SYS_GITHUB_TOKEN is not set, skipping format check"
+            exit 0
+          fi
+          len=${#CLAW_SYS_GITHUB_TOKEN}
+          if [[ "${CLAW_SYS_GITHUB_TOKEN}" =~ ^ghp_[A-Za-z0-9]{36}$ ]]; then
+            echo "✅ CLAW_SYS_GITHUB_TOKEN matches Fine-grained / Classic PAT format (ghp_...)"
+          elif [[ "${CLAW_SYS_GITHUB_TOKEN}" =~ ^github_pat_[A-Za-z0-9_]{82}$ ]]; then
+            echo "✅ CLAW_SYS_GITHUB_TOKEN matches Fine-grained PAT format (github_pat_...)"
+          elif [[ "${CLAW_SYS_GITHUB_TOKEN}" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "✅ CLAW_SYS_GITHUB_TOKEN matches legacy Classic PAT format (40-char hex)"
+          elif [[ $len -ge 20 ]]; then
+            echo "⚠️ CLAW_SYS_GITHUB_TOKEN did not match a known format but has sufficient length (${len} chars); may be a custom format"
+          else
+            echo "::error::CLAW_SYS_GITHUB_TOKEN has an abnormal length (${len} chars); may not be a valid GitHub Token"
+            exit 1
+          fi
+
+      - name: "[TC-GH03] CLAW_SYS_GITHUB_TOKEN — GitHub API verification (GET /user)"
+        id: tc_gh03
+        continue-on-error: true
+        run: |
+          if [[ -z "${CLAW_SYS_GITHUB_TOKEN:-}" ]]; then
+            echo "::warning::CLAW_SYS_GITHUB_TOKEN is not set, skipping API verification"
+            exit 0
+          fi
+          RESPONSE=$(curl -sS \
+            -H "Authorization: Bearer ${CLAW_SYS_GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/user")
+          LOGIN=$(echo "$RESPONSE" | jq -r '.login // empty')
+          if [[ -z "$LOGIN" ]]; then
+            echo "::error::CLAW_SYS_GITHUB_TOKEN cannot call the GitHub API (token invalid or expired): $(echo "$RESPONSE" | jq -c '{message}')"
+            exit 1
+          fi
+          echo "✅ CLAW_SYS_GITHUB_TOKEN is valid (GitHub user: ${LOGIN})"
+
+      - name: "[TC-GH04] CLAW_SYS_GITHUB_TOKEN — Repository access check (GET /repos/{owner}/{repo})"
+        id: tc_gh04
+        continue-on-error: true
+        run: |
+          if [[ -z "${CLAW_SYS_GITHUB_TOKEN:-}" ]]; then
+            echo "::warning::CLAW_SYS_GITHUB_TOKEN is not set, skipping Repository access check"
+            exit 0
+          fi
+          HTTP_STATUS=$(curl -sS \
+            -D /tmp/gh-repo-headers.txt \
+            -o /tmp/gh-repo-response.json \
+            -w "%{http_code}" \
+            -H "Authorization: Bearer ${CLAW_SYS_GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}")
+          MSG=$(jq -r 'if type=="object" and has("message") then .message else empty end' /tmp/gh-repo-response.json 2>/dev/null || true)
+          ACCEPTED_PERMS=$(tr -d '\r' < /tmp/gh-repo-headers.txt | awk -F': ' 'tolower($1)=="x-accepted-github-permissions"{print $2}' | tail -n 1)
+          REPO_NAME=$(jq -r '.full_name // empty' /tmp/gh-repo-response.json 2>/dev/null || true)
+          case "$HTTP_STATUS" in
+            200)
+              echo "✅ CLAW_SYS_GITHUB_TOKEN can access Repository: ${REPO_NAME:-${GITHUB_REPOSITORY}}"
+              ;;
+            401)
+              echo "::error::CLAW_SYS_GITHUB_TOKEN is invalid, expired, or has been revoked (GET /repos returned HTTP 401): ${MSG}"
+              exit 1
+              ;;
+            403)
+              echo "::error::CLAW_SYS_GITHUB_TOKEN cannot access Repository (HTTP 403): ${MSG}"
+              if [[ -n "${ACCEPTED_PERMS:-}" ]]; then
+                echo "::error::GitHub API suggested permissions: ${ACCEPTED_PERMS}"
+              fi
+              exit 1
+              ;;
+            404)
+              echo "::error::CLAW_SYS_GITHUB_TOKEN could not find or access Repository '${GITHUB_REPOSITORY}' (HTTP 404). This usually means the token has no repo access, the repo authorization has been removed, or the token is only authorized for other repositories."
+              exit 1
+              ;;
+            *)
+              echo "::error::CLAW_SYS_GITHUB_TOKEN Repository access check returned an unexpected status (HTTP ${HTTP_STATUS}): ${MSG}"
+              cat /tmp/gh-repo-response.json 2>/dev/null | head -n 5 || true
+              exit 1
+              ;;
+          esac
+
+      - name: "[TC-GH05] CLAW_SYS_GITHUB_TOKEN — Issues read permission (GET /repos/{owner}/{repo}/issues)"
+        id: tc_gh05
+        continue-on-error: true
+        run: |
+          if [[ -z "${CLAW_SYS_GITHUB_TOKEN:-}" ]]; then
+            echo "::warning::CLAW_SYS_GITHUB_TOKEN is not set, skipping Issues read permission check"
+            exit 0
+          fi
+          HTTP_STATUS=$(curl -sS \
+            -D /tmp/gh-issues-headers.txt \
+            -o /tmp/gh-issues-response.json \
+            -w "%{http_code}" \
+            -H "Authorization: Bearer ${CLAW_SYS_GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=1")
+          if [[ -z "$HTTP_STATUS" || "$HTTP_STATUS" -lt 200 || "$HTTP_STATUS" -ge 300 ]]; then
+            MSG=$(cat /tmp/gh-issues-response.json | jq -r 'if type=="object" and has("message") then .message else empty end' 2>/dev/null || true)
+            ACCEPTED_PERMS=$(tr -d '\r' < /tmp/gh-issues-headers.txt | awk -F': ' 'tolower($1)=="x-accepted-github-permissions"{print $2}' | tail -n 1)
+            echo "::error::CLAW_SYS_GITHUB_TOKEN failed to read Issues (HTTP ${HTTP_STATUS}): ${MSG}"
+            if [[ -n "${ACCEPTED_PERMS:-}" ]]; then
+              echo "::error::GitHub API suggested permissions: ${ACCEPTED_PERMS}"
+            fi
+            cat /tmp/gh-issues-response.json 2>/dev/null | head -n 5 || true
+            exit 1
+          fi
+          MSG=$(cat /tmp/gh-issues-response.json | jq -r 'if type=="object" and has("message") then .message else empty end' 2>/dev/null || true)
+          if [[ -n "$MSG" ]]; then
+            echo "::error::CLAW_SYS_GITHUB_TOKEN received an unexpected message while reading Issues: ${MSG}"
+            exit 1
+          fi
+          echo "✅ CLAW_SYS_GITHUB_TOKEN has Issues read permission"
+
+      - name: "[TC-GH06] CLAW_SYS_GITHUB_TOKEN — Actions read permission (GET /repos/{owner}/{repo}/actions/workflows)"
+        id: tc_gh06
+        continue-on-error: true
+        run: |
+          if [[ -z "${CLAW_SYS_GITHUB_TOKEN:-}" ]]; then
+            echo "::warning::CLAW_SYS_GITHUB_TOKEN is not set, skipping Actions read permission check"
+            exit 0
+          fi
+          HTTP_STATUS=$(curl -sS \
+            -D /tmp/gh-actions-read-headers.txt \
+            -o /tmp/gh-actions-read-response.json \
+            -w "%{http_code}" \
+            -H "Authorization: Bearer ${CLAW_SYS_GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows")
+          MSG=$(jq -r '.message // empty' /tmp/gh-actions-read-response.json 2>/dev/null || true)
+          ACCEPTED_PERMS=$(tr -d '\r' < /tmp/gh-actions-read-headers.txt | awk -F': ' 'tolower($1)=="x-accepted-github-permissions"{print $2}' | tail -n 1)
+          if [[ -z "$HTTP_STATUS" || "$HTTP_STATUS" -lt 200 || "$HTTP_STATUS" -ge 300 ]]; then
+            echo "::error::CLAW_SYS_GITHUB_TOKEN has no Actions read permission (HTTP ${HTTP_STATUS}): ${MSG}"
+            if [[ -n "${ACCEPTED_PERMS:-}" ]]; then
+              echo "::error::GitHub API suggested permissions: ${ACCEPTED_PERMS}"
+            fi
+            exit 1
+          fi
+          if echo "$MSG" | grep -qiE "Not Found|Resource not accessible|Bad credentials"; then
+            echo "::error::CLAW_SYS_GITHUB_TOKEN has no Actions read permission: ${MSG}"
+            if [[ -n "${ACCEPTED_PERMS:-}" ]]; then
+              echo "::error::GitHub API suggested permissions: ${ACCEPTED_PERMS}"
+            fi
+            exit 1
+          fi
+          COUNT=$(jq '.total_count // 0' /tmp/gh-actions-read-response.json 2>/dev/null || echo "0")
+          echo "✅ CLAW_SYS_GITHUB_TOKEN has Actions read permission (Workflow count: ${COUNT})"
+
+      - name: "[TC-GH07] CLAW_SYS_GITHUB_TOKEN — Actions write permission (Workflow Dispatch access check)"
+        id: tc_gh07
+        continue-on-error: true
+        run: |
+          if [[ -z "${CLAW_SYS_GITHUB_TOKEN:-}" ]]; then
+            echo "::warning::CLAW_SYS_GITHUB_TOKEN is not set, skipping Actions write permission check"
+            exit 0
+          fi
+          # Attempt a dispatch using the currently running workflow (check-env-permissions.yml);
+          # since this workflow itself has a workflow_dispatch trigger and is guaranteed to exist.
+          # HTTP 422 → has permission (ref does not exist but is callable)
+          # HTTP 403/401 → no Actions:write permission
+          # HTTP 404 → workflow does not exist or is inaccessible (should not happen)
+          HTTP_STATUS=$(curl -sS -D /tmp/gh-actions-write-headers.txt -o /tmp/dispatch-response.json -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${CLAW_SYS_GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            -H "Content-Type: application/json" \
+            -d '{"ref":"__env_permission_check_nonexistent_ref__"}' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/check-env-permissions.yml/dispatches")
+          ACCEPTED_PERMS=$(tr -d '\r' < /tmp/gh-actions-write-headers.txt | awk -F': ' 'tolower($1)=="x-accepted-github-permissions"{print $2}' | tail -n 1)
+          MSG=$(jq -r '.message // empty' /tmp/dispatch-response.json 2>/dev/null || true)
+          case "$HTTP_STATUS" in
+            422)
+              echo "✅ CLAW_SYS_GITHUB_TOKEN has Actions write (workflow dispatch) permission (HTTP 422: ref does not exist but is accessible)"
+              ;;
+            401|403)
+              echo "::error::CLAW_SYS_GITHUB_TOKEN has no Actions write (workflow dispatch) permission (HTTP ${HTTP_STATUS}): ${MSG}"
+              if [[ -n "${ACCEPTED_PERMS:-}" ]]; then
+                echo "::error::GitHub API suggested permissions: ${ACCEPTED_PERMS}"
+              fi
+              exit 1
+              ;;
+            404)
+              echo "::warning::check-env-permissions.yml does not exist or is inaccessible; cannot confirm Actions write permission (HTTP 404)"
+              ;;
+            *)
+              echo "::warning::Actions write permission check returned an unexpected status (HTTP ${HTTP_STATUS}): ${MSG}"
+              cat /tmp/dispatch-response.json | jq . 2>/dev/null || true
+              ;;
+          esac
+
+      - name: "[TC-GH08] GitHub App — Repository Installation check (best effort)"
+        id: tc_gh08
+        continue-on-error: true
+        run: |
+          if [[ -z "${CLAW_SYS_GITHUB_TOKEN:-}" ]]; then
+            echo "::warning::CLAW_SYS_GITHUB_TOKEN is not set, skipping GitHub App installation check"
+            exit 0
+          fi
+          HTTP_STATUS=$(curl -sS \
+            -D /tmp/gh-app-install-headers.txt \
+            -o /tmp/gh-app-install-response.json \
+            -w "%{http_code}" \
+            -H "Authorization: Bearer ${CLAW_SYS_GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/installation")
+          MSG=$(jq -r '.message // empty' /tmp/gh-app-install-response.json 2>/dev/null || true)
+          INSTALLATION_ID=$(jq -r '.id // empty' /tmp/gh-app-install-response.json 2>/dev/null || true)
+          APP_ID=$(jq -r '.app_id // empty' /tmp/gh-app-install-response.json 2>/dev/null || true)
+          APP_SLUG=$(jq -r '.app_slug // empty' /tmp/gh-app-install-response.json 2>/dev/null || true)
+          ACCEPTED_PERMS=$(tr -d '\r' < /tmp/gh-app-install-headers.txt | awk -F': ' 'tolower($1)=="x-accepted-github-permissions"{print $2}' | tail -n 1)
+          case "$HTTP_STATUS" in
+            200)
+              echo "✅ GitHub App is installed on this Repository (installation_id: ${INSTALLATION_ID:-unknown}, app_id: ${APP_ID:-unknown}, app_slug: ${APP_SLUG:-unknown})"
+              ;;
+            404)
+              echo "::error::Could not find a GitHub App installation for '${GITHUB_REPOSITORY}' (HTTP 404). This usually means the GitHub App is not installed on this repo yet, or the current CLAW_SYS_GITHUB_TOKEN cannot query the installation status."
+              exit 1
+              ;;
+            401|403)
+              echo "::error::Could not query the GitHub App installation (HTTP ${HTTP_STATUS}): ${MSG}"
+              if [[ -n "${ACCEPTED_PERMS:-}" ]]; then
+                echo "::error::GitHub API suggested permissions: ${ACCEPTED_PERMS}"
+              fi
+              echo "::error::If you have installed the GitHub App, please confirm CLAW_SYS_GITHUB_TOKEN still has access to this repo, or use GitHub App credentials for installation verification."
+              exit 1
+              ;;
+            *)
+              echo "::error::GitHub App installation check returned an unexpected status (HTTP ${HTTP_STATUS}): ${MSG}"
+              cat /tmp/gh-app-install-response.json 2>/dev/null | head -n 5 || true
+              exit 1
+              ;;
+          esac
+
+      # ══════════════════════════════════════════════════════════════════════
+      # GH_WEBHOOK_SECRET
+      # ══════════════════════════════════════════════════════════════════════
+
+      - name: "[TC-WS01] GH_WEBHOOK_SECRET — exists"
+        id: tc_ws01
+        continue-on-error: true
+        run: |
+          if [[ -z "${GH_WEBHOOK_SECRET:-}" ]]; then
+            echo "::error::GH_WEBHOOK_SECRET is not set (Settings → Secrets → Actions)"
+            exit 1
+          fi
+          echo "✅ GH_WEBHOOK_SECRET is set"
+
+      - name: "[TC-WS02] GH_WEBHOOK_SECRET — length at least 8 chars"
+        id: tc_ws02
+        continue-on-error: true
+        run: |
+          if [[ -z "${GH_WEBHOOK_SECRET:-}" ]]; then
+            echo "::warning::GH_WEBHOOK_SECRET is not set, skipping length check"
+            exit 0
+          fi
+          len=${#GH_WEBHOOK_SECRET}
+          if [[ $len -lt 8 ]]; then
+            echo "::error::GH_WEBHOOK_SECRET is too short (${len} chars), recommended at least 8 chars for security"
+            exit 1
+          fi
+          echo "✅ GH_WEBHOOK_SECRET length is sufficient (${len} chars)"
+
+      - name: "[TC-WS03] GH_WEBHOOK_SECRET — no obviously weak passwords"
+        id: tc_ws03
+        continue-on-error: true
+        run: |
+          if [[ -z "${GH_WEBHOOK_SECRET:-}" ]]; then
+            echo "::warning::GH_WEBHOOK_SECRET is not set, skipping weak-password check"
+            exit 0
+          fi
+          WEAK_PATTERNS=("password" "secret" "12345678" "webhook" "test" "example" "changeme" "default" "qwerty" "abcdefgh")
+          LOWER=$(echo "${GH_WEBHOOK_SECRET}" | tr '[:upper:]' '[:lower:]')
+          FAILED=false
+          for pattern in "${WEAK_PATTERNS[@]}"; do
+            if [[ "$LOWER" == *"${pattern}"* ]]; then
+              echo "::error::GH_WEBHOOK_SECRET contains a weak substring '${pattern}', please use a randomly generated strong password"
+              FAILED=true
+            fi
+          done
+          # Check whether all characters are the same repeated character (e.g. "aaaaaaaa")
+          UNIQUE=$(echo "${GH_WEBHOOK_SECRET}" | grep -o . | sort -u | wc -l | tr -d ' ')
+          if [[ "$UNIQUE" -le 1 ]]; then
+            echo "::error::GH_WEBHOOK_SECRET is a single repeated character, extremely weak"
+            FAILED=true
+          fi
+          # Check whether it is all digits (e.g. "123456789")
+          if [[ "${GH_WEBHOOK_SECRET}" =~ ^[0-9]+$ ]]; then
+            echo "::error::GH_WEBHOOK_SECRET is all digits, recommended to include letters and special characters"
+            FAILED=true
+          fi
+          if [[ "$FAILED" == "true" ]]; then
+            exit 1
+          fi
+          echo "✅ GH_WEBHOOK_SECRET has no obviously weak passwords detected"
+
+      # ══════════════════════════════════════════════════════════════════════
+      # TELEGRAM_BOT_TOKEN
+      # ══════════════════════════════════════════════════════════════════════
+
+      - name: "[TC-TG01] TELEGRAM_BOT_TOKEN — exists"
+        id: tc_tg01
+        continue-on-error: true
+        run: |
+          if [[ -z "${TELEGRAM_BOT_TOKEN:-}" ]]; then
+            echo "::error::TELEGRAM_BOT_TOKEN is not set (Settings → Secrets → Actions)"
+            exit 1
+          fi
+          echo "✅ TELEGRAM_BOT_TOKEN is set"
+
+      - name: "[TC-TG02] TELEGRAM_BOT_TOKEN — format check ({bot_id}:{token_string})"
+        id: tc_tg02
+        continue-on-error: true
+        run: |
+          if [[ -z "${TELEGRAM_BOT_TOKEN:-}" ]]; then
+            echo "::warning::TELEGRAM_BOT_TOKEN is not set, skipping format check"
+            exit 0
+          fi
+          if ! [[ "${TELEGRAM_BOT_TOKEN}" =~ ^[0-9]+:[A-Za-z0-9_-]{35,}$ ]]; then
+            echo "::error::TELEGRAM_BOT_TOKEN format mismatch (expected: {digits}:{35+ alphanumeric chars})"
+            exit 1
+          fi
+          BOT_ID=$(echo "${TELEGRAM_BOT_TOKEN}" | cut -d: -f1)
+          echo "✅ TELEGRAM_BOT_TOKEN format is correct (Bot ID: ${BOT_ID})"
+
+      - name: "[TC-TG03] TELEGRAM_BOT_TOKEN — Telegram API verification (getMe)"
+        id: tc_tg03
+        continue-on-error: true
+        run: |
+          if [[ -z "${TELEGRAM_BOT_TOKEN:-}" ]]; then
+            echo "::warning::TELEGRAM_BOT_TOKEN is not set, skipping Telegram API verification"
+            exit 0
+          fi
+          RESPONSE=$(curl -sS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getMe")
+          OK=$(echo "$RESPONSE" | jq -r '.ok // false')
+          if [[ "$OK" != "true" ]]; then
+            echo "::error::TELEGRAM_BOT_TOKEN is invalid (Telegram API getMe failed): $(echo "$RESPONSE" | jq -c '{description}')"
+            exit 1
+          fi
+          BOT_USERNAME=$(echo "$RESPONSE" | jq -r '.result.username // "unknown"')
+          echo "✅ TELEGRAM_BOT_TOKEN is valid (Bot: @${BOT_USERNAME})"
+
+      - name: "[TC-TG04] TELEGRAM_BOT_TOKEN — Telegram Webhook configuration check (getWebhookInfo)"
+        id: tc_tg04
+        continue-on-error: true
+        run: |
+          if [[ -z "${TELEGRAM_BOT_TOKEN:-}" ]]; then
+            echo "::warning::TELEGRAM_BOT_TOKEN is not set, skipping Telegram webhook check"
+            exit 0
+          fi
+          RESPONSE=$(curl -sS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getWebhookInfo")
+          OK=$(echo "$RESPONSE" | jq -r '.ok // false')
+          if [[ "$OK" != "true" ]]; then
+            echo "::error::Could not read Telegram webhook configuration (getWebhookInfo failed): $(echo "$RESPONSE" | jq -c '{description}')"
+            exit 1
+          fi
+          WEBHOOK_URL=$(echo "$RESPONSE" | jq -r '.result.url // ""')
+          LAST_ERROR_DATE=$(echo "$RESPONSE" | jq -r '.result.last_error_date // empty')
+          LAST_ERROR_MESSAGE=$(echo "$RESPONSE" | jq -r '.result.last_error_message // empty')
+          PENDING_COUNT=$(echo "$RESPONSE" | jq -r '.result.pending_update_count // 0')
+          EXPECTED_WEBHOOK_URL=""
+          if [[ -n "${WORKER_URL:-}" ]]; then
+            EXPECTED_WEBHOOK_URL="${WORKER_URL%/}/telegram/webhook"
+          fi
+          if [[ -z "${WEBHOOK_URL}" ]]; then
+            echo "::error::Telegram Bot has no webhook URL set, meaning the bot webhook has not been configured or has been cleared"
+            exit 1
+          fi
+          if [[ -n "${EXPECTED_WEBHOOK_URL}" && "${WEBHOOK_URL}" != "${EXPECTED_WEBHOOK_URL}" ]]; then
+            echo "::error::Telegram webhook URL is misconfigured: current is '${WEBHOOK_URL}', expected is '${EXPECTED_WEBHOOK_URL}'"
+            exit 1
+          fi
+          if [[ -n "${LAST_ERROR_MESSAGE:-}" ]]; then
+            if [[ -n "${LAST_ERROR_DATE:-}" ]]; then
+              LAST_ERROR_DATE_FMT=$(date -u -d "@${LAST_ERROR_DATE}" '+%Y-%m-%d %H:%M:%S UTC' 2>/dev/null || echo "${LAST_ERROR_DATE}")
+            else
+              LAST_ERROR_DATE_FMT="unknown"
+            fi
+            echo "::error::Telegram webhook recently reported an error (${LAST_ERROR_DATE_FMT}): ${LAST_ERROR_MESSAGE}"
+            exit 1
+          fi
+          echo "✅ Telegram webhook configuration is normal (url: ${WEBHOOK_URL}, pending_update_count: ${PENDING_COUNT})"
+
+      # ══════════════════════════════════════════════════════════════════════
+      # TELEGRAM_WEBHOOK_SECRET
+      # ══════════════════════════════════════════════════════════════════════
+
+      - name: "[TC-TW01] TELEGRAM_WEBHOOK_SECRET — exists"
+        id: tc_tw01
+        continue-on-error: true
+        run: |
+          if [[ -z "${TELEGRAM_WEBHOOK_SECRET:-}" ]]; then
+            echo "::error::TELEGRAM_WEBHOOK_SECRET is not set (Settings → Secrets → Actions)"
+            exit 1
+          fi
+          echo "✅ TELEGRAM_WEBHOOK_SECRET is set"
+
+      - name: "[TC-TW02] TELEGRAM_WEBHOOK_SECRET — length at least 8 chars"
+        id: tc_tw02
+        continue-on-error: true
+        run: |
+          if [[ -z "${TELEGRAM_WEBHOOK_SECRET:-}" ]]; then
+            echo "::warning::TELEGRAM_WEBHOOK_SECRET is not set, skipping length check"
+            exit 0
+          fi
+          len=${#TELEGRAM_WEBHOOK_SECRET}
+          if [[ $len -lt 8 ]]; then
+            echo "::error::TELEGRAM_WEBHOOK_SECRET is too short (${len} chars), recommended at least 8 chars"
+            exit 1
+          fi
+          echo "✅ TELEGRAM_WEBHOOK_SECRET length is sufficient (${len} chars)"
+
+      - name: "[TC-TW03] TELEGRAM_WEBHOOK_SECRET — character restriction check (Telegram only allows A-Z a-z 0-9 _ -)"
+        id: tc_tw03
+        continue-on-error: true
+        run: |
+          if [[ -z "${TELEGRAM_WEBHOOK_SECRET:-}" ]]; then
+            echo "::warning::TELEGRAM_WEBHOOK_SECRET is not set, skipping character check"
+            exit 0
+          fi
+          if ! [[ "${TELEGRAM_WEBHOOK_SECRET}" =~ ^[A-Za-z0-9_-]+$ ]]; then
+            echo "::error::TELEGRAM_WEBHOOK_SECRET contains characters not allowed by Telegram (only A-Z a-z 0-9 _ - allowed); webhook verification may fail"
+            exit 1
+          fi
+          echo "✅ TELEGRAM_WEBHOOK_SECRET characters comply with Telegram Webhook Secret restrictions"
+
+      # ══════════════════════════════════════════════════════════════════════
+      # GEMINI_API_KEY (optional)
+      # ══════════════════════════════════════════════════════════════════════
+
+      - name: "[TC-GM01] GEMINI_API_KEY — exists (optional)"
+        id: tc_gm01
+        continue-on-error: true
+        run: |
+          if [[ -z "${GEMINI_API_KEY:-}" ]]; then
+            echo "::warning::GEMINI_API_KEY is not set (optional; when unset, Gemini skills such as summary will be unavailable)"
+            exit 0
+          fi
+          echo "✅ GEMINI_API_KEY is set"
+
+      - name: "[TC-GM02] GEMINI_API_KEY — format check (if present)"
+        id: tc_gm02
+        continue-on-error: true
+        run: |
+          if [[ -z "${GEMINI_API_KEY:-}" ]]; then
+            echo "ℹ️ GEMINI_API_KEY is not set, skipping format check"
+            exit 0
+          fi
+          len=${#GEMINI_API_KEY}
+          if [[ "${GEMINI_API_KEY}" =~ ^(AIza[A-Za-z0-9_-]{35,}|AQ\.[A-Za-z0-9_-]{30,})$ ]]; then
+            echo "✅ GEMINI_API_KEY format matches the Google AI API Key format (AIza or AQ. prefix, length: ${len})"
+          elif [[ $len -ge 20 ]]; then
+            echo "⚠️ GEMINI_API_KEY did not match a standard Google AI API Key format (length: ${len}); if using Vertex AI or an enterprise endpoint, the format may differ"
+          else
+            echo "::error::GEMINI_API_KEY has an abnormal length (${len} chars); may not be a valid API Key"
+            exit 1
+          fi
+
+      - name: "[TC-GM03] GEMINI_API_KEY — Google Generative AI API verification (listModels)"
+        id: tc_gm03
+        continue-on-error: true
+        run: |
+          if [[ -z "${GEMINI_API_KEY:-}" ]]; then
+            echo "ℹ️ GEMINI_API_KEY is not set, skipping API verification"
+            exit 0
+          fi
+          RESPONSE=$(curl -sS \
+            "https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}&pageSize=1")
+          if echo "$RESPONSE" | jq -e '.models' > /dev/null 2>&1; then
+            MODEL_COUNT=$(echo "$RESPONSE" | jq '.models | length')
+            echo "✅ GEMINI_API_KEY is valid (can access the Generative AI API, models count: ${MODEL_COUNT})"
+          elif echo "$RESPONSE" | jq -e '.error' > /dev/null 2>&1; then
+            CODE=$(echo "$RESPONSE" | jq -r '.error.code // "unknown"')
+            MSG=$(echo "$RESPONSE" | jq -r '.error.message // "unknown"')
+            echo "::error::GEMINI_API_KEY verification failed (code: ${CODE}): ${MSG}"
+            exit 1
+          else
+            echo "::error::GEMINI_API_KEY verification returned an unexpected format: $(echo "$RESPONSE" | head -c 200)"
+            exit 1
+          fi
+
+      # ══════════════════════════════════════════════════════════════════════
+      # CLAWBRAIN_API_KEY (optional)
+      # ══════════════════════════════════════════════════════════════════════
+
+      - name: "[TC-CB01] CLAWBRAIN_API_KEY — exists (optional)"
+        id: tc_cb01
+        continue-on-error: true
+        run: |
+          if [[ -z "${CLAWBRAIN_API_KEY:-}" ]]; then
+            echo "ℹ️ CLAWBRAIN_API_KEY is not set (optional; ClawBrain features may be limited)"
+            exit 0
+          fi
+          echo "✅ CLAWBRAIN_API_KEY is set"
+
+      - name: "[TC-CB02] CLAWBRAIN_API_KEY — non-blank value check (if present)"
+        id: tc_cb02
+        continue-on-error: true
+        run: |
+          if [[ -z "${CLAWBRAIN_API_KEY:-}" ]]; then
+            echo "ℹ️ CLAWBRAIN_API_KEY is not set, skipping verification"
+            exit 0
+          fi
+          TRIMMED=$(echo "${CLAWBRAIN_API_KEY}" | tr -d '[:space:]')
+          if [[ -z "$TRIMMED" ]]; then
+            echo "::error::CLAWBRAIN_API_KEY is set but its value is blank"
+            exit 1
+          fi
+          echo "✅ CLAWBRAIN_API_KEY is non-blank (length: ${#CLAWBRAIN_API_KEY} chars)"
+
+      - name: "[TC-CB03] CLAWBRAIN_API_KEY — call the corresponding AI Provider API based on CLAWBRAIN_PROVIDER"
+        id: tc_cb03
+        continue-on-error: true
+        run: |
+          if [[ -z "${CLAWBRAIN_API_KEY:-}" ]]; then
+            echo "ℹ️ CLAWBRAIN_API_KEY is not set, skipping API verification"
+            exit 0
+          fi
+          PROVIDER="${CLAWBRAIN_PROVIDER:-}"
+          case "${PROVIDER}" in
+            gemini)
+              RESPONSE=$(curl -sS \
+                "https://generativelanguage.googleapis.com/v1beta/models?key=${CLAWBRAIN_API_KEY}&pageSize=1")
+              if echo "$RESPONSE" | jq -e '.models' > /dev/null 2>&1; then
+                echo "✅ CLAWBRAIN_API_KEY is valid (provider: gemini, can access the Generative AI API)"
+              else
+                MSG=$(echo "$RESPONSE" | jq -r '.error.message // empty' 2>/dev/null)
+                echo "::error::CLAWBRAIN_API_KEY verification failed (provider: gemini): ${MSG}"
+                exit 1
+              fi
+              ;;
+            openai)
+              HTTP_STATUS=$(curl -sS -o /tmp/cb-api-response.json -w "%{http_code}" \
+                -H "Authorization: Bearer ${CLAWBRAIN_API_KEY}" \
+                "https://api.openai.com/v1/models?limit=1")
+              if [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 300 ]]; then
+                echo "✅ CLAWBRAIN_API_KEY is valid (provider: openai, HTTP ${HTTP_STATUS})"
+              else
+                MSG=$(cat /tmp/cb-api-response.json | jq -r '.error.message // empty' 2>/dev/null)
+                echo "::error::CLAWBRAIN_API_KEY verification failed (provider: openai, HTTP ${HTTP_STATUS}): ${MSG}"
+                exit 1
+              fi
+              ;;
+            anthropic)
+              HTTP_STATUS=$(curl -sS -o /tmp/cb-api-response.json -w "%{http_code}" \
+                -H "x-api-key: ${CLAWBRAIN_API_KEY}" \
+                -H "anthropic-version: 2023-06-01" \
+                "https://api.anthropic.com/v1/models?limit=1")
+              if [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 300 ]]; then
+                echo "✅ CLAWBRAIN_API_KEY is valid (provider: anthropic, HTTP ${HTTP_STATUS})"
+              else
+                MSG=$(cat /tmp/cb-api-response.json | jq -r '.error.message // empty' 2>/dev/null)
+                echo "::error::CLAWBRAIN_API_KEY verification failed (provider: anthropic, HTTP ${HTTP_STATUS}): ${MSG}"
+                exit 1
+              fi
+              ;;
+            groq)
+              HTTP_STATUS=$(curl -sS -o /tmp/cb-api-response.json -w "%{http_code}" \
+                -H "Authorization: Bearer ${CLAWBRAIN_API_KEY}" \
+                "https://api.groq.com/openai/v1/models")
+              if [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 300 ]]; then
+                echo "✅ CLAWBRAIN_API_KEY is valid (provider: groq, HTTP ${HTTP_STATUS})"
+              else
+                MSG=$(cat /tmp/cb-api-response.json | jq -r '.error.message // empty' 2>/dev/null)
+                echo "::error::CLAWBRAIN_API_KEY verification failed (provider: groq, HTTP ${HTTP_STATUS}): ${MSG}"
+                exit 1
+              fi
+              ;;
+            mistral)
+              HTTP_STATUS=$(curl -sS -o /tmp/cb-api-response.json -w "%{http_code}" \
+                -H "Authorization: Bearer ${CLAWBRAIN_API_KEY}" \
+                "https://api.mistral.ai/v1/models")
+              if [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 300 ]]; then
+                echo "✅ CLAWBRAIN_API_KEY is valid (provider: mistral, HTTP ${HTTP_STATUS})"
+              else
+                MSG=$(cat /tmp/cb-api-response.json | jq -r '.error.message // empty' 2>/dev/null)
+                echo "::error::CLAWBRAIN_API_KEY verification failed (provider: mistral, HTTP ${HTTP_STATUS}): ${MSG}"
+                exit 1
+              fi
+              ;;
+            *)
+              if [[ -z "$PROVIDER" ]]; then
+                echo "⚠️ CLAWBRAIN_PROVIDER is not set, cannot confirm the corresponding API; only confirming that CLAWBRAIN_API_KEY is non-blank"
+              else
+                echo "⚠️ CLAWBRAIN_PROVIDER '${PROVIDER}' does not support API verification, skipping (only confirming that CLAWBRAIN_API_KEY is non-blank)"
+              fi
+              ;;
+          esac
+
+      # ══════════════════════════════════════════════════════════════════════
+      # FELO_API_KEY (optional)
+      # ══════════════════════════════════════════════════════════════════════
+
+      - name: "[TC-FL01] FELO_API_KEY — exists (optional)"
+        id: tc_fl01
+        continue-on-error: true
+        run: |
+          if [[ -z "${FELO_API_KEY:-}" ]]; then
+            echo "ℹ️ FELO_API_KEY is not set (optional; Felo-related tools will be unavailable)"
+            exit 0
+          fi
+          echo "✅ FELO_API_KEY is set"
+
+      - name: "[TC-FL02] FELO_API_KEY — non-blank value check (if present)"
+        id: tc_fl02
+        continue-on-error: true
+        run: |
+          if [[ -z "${FELO_API_KEY:-}" ]]; then
+            echo "ℹ️ FELO_API_KEY is not set, skipping verification"
+            exit 0
+          fi
+          TRIMMED=$(echo "${FELO_API_KEY}" | tr -d '[:space:]')
+          if [[ -z "$TRIMMED" ]]; then
+            echo "::error::FELO_API_KEY is set but its value is blank"
+            exit 1
+          fi
+          echo "✅ FELO_API_KEY is non-blank (length: ${#FELO_API_KEY} chars)"
+
+      - name: "[TC-FL03] FELO_API_KEY — Felo API verification (POST /v2/chat)"
+        id: tc_fl03
+        continue-on-error: true
+        run: |
+          if [[ -z "${FELO_API_KEY:-}" ]]; then
+            echo "ℹ️ FELO_API_KEY is not set, skipping API verification"
+            exit 0
+          fi
+          HTTP_STATUS=$(curl -sS -o /tmp/felo-response.json -w "%{http_code}" \
+            --connect-timeout 15 --max-time 30 \
+            -X POST \
+            -H "Authorization: Bearer ${FELO_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{"query":"test"}' \
+            "https://openapi.felo.ai/v2/chat")
+          STATUS_FIELD=$(cat /tmp/felo-response.json | jq -r '.status // empty' 2>/dev/null)
+          if [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 300 ]] && \
+             { [[ "$STATUS_FIELD" == "ok" ]] || [[ "$STATUS_FIELD" == "200" ]]; }; then
+            echo "✅ FELO_API_KEY is valid (Felo API responded normally, HTTP ${HTTP_STATUS})"
+          elif [[ "$HTTP_STATUS" == "401" || "$HTTP_STATUS" == "403" ]]; then
+            MSG=$(cat /tmp/felo-response.json | jq -r '.message // .error // empty' 2>/dev/null)
+            echo "::error::FELO_API_KEY is invalid or expired (HTTP ${HTTP_STATUS}): ${MSG}"
+            exit 1
+          else
+            MSG=$(cat /tmp/felo-response.json | jq -r '.message // .error // empty' 2>/dev/null)
+            echo "::warning::FELO_API_KEY API returned an unexpected response (HTTP ${HTTP_STATUS}): ${MSG}"
+          fi
+
+      # ══════════════════════════════════════════════════════════════════════
+      # WORKER_NAME (Repository Variable, required)
+      # ══════════════════════════════════════════════════════════════════════
+
+      - name: "[TC-WN01] WORKER_NAME — exists"
+        id: tc_wn01
+        continue-on-error: true
+        run: |
+          if [[ -z "${WORKER_NAME:-}" ]]; then
+            echo "::error::Repository variable WORKER_NAME is not set (Settings → Secrets and variables → Actions → Variables)"
+            exit 1
+          fi
+          echo "✅ WORKER_NAME is set: ${WORKER_NAME}"
+
+      - name: "[TC-WN02] WORKER_NAME — format check (Cloudflare Worker script name)"
+        id: tc_wn02
+        continue-on-error: true
+        run: |
+          if [[ -z "${WORKER_NAME:-}" ]]; then
+            echo "::warning::WORKER_NAME is not set, skipping format check"
+            exit 0
+          fi
+          if ! [[ "${WORKER_NAME}" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$ ]]; then
+            echo "::error::WORKER_NAME format mismatch (must comply with Cloudflare Worker script name rules, actual: '${WORKER_NAME}')"
+            exit 1
+          fi
+          echo "✅ WORKER_NAME format is correct"
+
+      - name: "[TC-WN03] WORKER_NAME — Worker exists in the Cloudflare account"
+        id: tc_wn03
+        continue-on-error: true
+        run: |
+          if [[ -z "${WORKER_NAME:-}" || -z "${CLOUDFLARE_API_TOKEN:-}" || -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]]; then
+            echo "::warning::WORKER_NAME / CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID are not fully set, skipping Worker existence check"
+            exit 0
+          fi
+          HTTP_STATUS=$(curl -sS \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -w "%{http_code}" \
+            -o /tmp/cf-workers-list-response.json \
+            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts")
+          if ! echo "$HTTP_STATUS" | grep -Eq '^[0-9]+$'; then
+            echo "::error::Could not obtain an HTTP status from the Cloudflare Workers API (raw output: ${HTTP_STATUS})"
+            exit 1
+          fi
+          if [[ "$HTTP_STATUS" -lt 200 || "$HTTP_STATUS" -ge 300 ]]; then
+            ERRORS=$(jq -c 'if type=="object" and has("errors") then .errors else [] end' /tmp/cf-workers-list-response.json 2>/dev/null || echo "[]")
+            echo "::error::Could not list Cloudflare Workers (HTTP ${HTTP_STATUS}): ${ERRORS}"
+            exit 1
+          fi
+          SUCCESS=$(jq -r 'if type=="object" and has("success") then .success else false end' /tmp/cf-workers-list-response.json 2>/dev/null || echo "false")
+          if [[ "$SUCCESS" != "true" ]]; then
+            ERRORS=$(jq -c 'if type=="object" and has("errors") then .errors else [] end' /tmp/cf-workers-list-response.json 2>/dev/null || echo "[]")
+            echo "::error::Could not list Cloudflare Workers (API response success!=true): ${ERRORS}"
+            exit 1
+          fi
+          MATCHED_NAME=$(jq -r --arg workerName "$WORKER_NAME" '.result[]? | select(.id == $workerName) | .id' /tmp/cf-workers-list-response.json 2>/dev/null | head -n 1)
+          if [[ -z "$MATCHED_NAME" ]]; then
+            ALL_WORKERS=$(jq -r '[.result[]?.id] | join(", ")' /tmp/cf-workers-list-response.json 2>/dev/null || echo "(unable to parse)")
+            echo "::error::Could not find Worker '${WORKER_NAME}' (existing in account: ${ALL_WORKERS})"
+            exit 1
+          fi
+          echo "✅ Worker '${MATCHED_NAME}' exists in the Cloudflare account"
+
+      # ══════════════════════════════════════════════════════════════════════
+      # WORKERS_SUBDOMAIN (Repository Variable)
+      # ══════════════════════════════════════════════════════════════════════
+
+      - name: "[TC-SUB01] WORKERS_SUBDOMAIN — exists"
+        id: tc_sub01
+        continue-on-error: true
+        run: |
+          if [[ -z "${WORKERS_SUBDOMAIN:-}" ]]; then
+            echo "::error::Repository variable WORKERS_SUBDOMAIN is not set (should be set automatically by bootstrap)"
+            exit 1
+          fi
+          echo "✅ WORKERS_SUBDOMAIN is set: ${WORKERS_SUBDOMAIN}"
+
+      - name: "[TC-SUB02] WORKERS_SUBDOMAIN — format check (only alphanumeric and hyphen)"
+        id: tc_sub02
+        continue-on-error: true
+        run: |
+          if [[ -z "${WORKERS_SUBDOMAIN:-}" ]]; then
+            echo "::warning::WORKERS_SUBDOMAIN is not set, skipping format check"
+            exit 0
+          fi
+          if ! [[ "${WORKERS_SUBDOMAIN}" =~ ^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?$ ]]; then
+            echo "::error::WORKERS_SUBDOMAIN format mismatch (only alphanumeric and hyphen allowed, and must not start or end with a hyphen, actual: '${WORKERS_SUBDOMAIN}')"
+            exit 1
+          fi
+          echo "✅ WORKERS_SUBDOMAIN format is correct"
+
+      # ══════════════════════════════════════════════════════════════════════
+      # WORKER_URL (Repository Variable)
+      # ══════════════════════════════════════════════════════════════════════
+
+      - name: "[TC-WU01] WORKER_URL — exists"
+        id: tc_wu01
+        continue-on-error: true
+        run: |
+          if [[ -z "${WORKER_URL:-}" ]]; then
+            echo "::error::Repository variable WORKER_URL is not set (should be set automatically by bootstrap)"
+            exit 1
+          fi
+          echo "✅ WORKER_URL is set: ${WORKER_URL}"
+
+      - name: "[TC-WU02] WORKER_URL — format check (valid HTTPS URL)"
+        id: tc_wu02
+        continue-on-error: true
+        run: |
+          if [[ -z "${WORKER_URL:-}" ]]; then
+            echo "::warning::WORKER_URL is not set, skipping format check"
+            exit 0
+          fi
+          if ! [[ "${WORKER_URL}" =~ ^https://[A-Za-z0-9._-]+(:[0-9]+)?(/.*)?$ ]]; then
+            echo "::error::WORKER_URL format mismatch (expected a valid URL starting with https://, actual: '${WORKER_URL}')"
+            exit 1
+          fi
+          echo "✅ WORKER_URL format is correct (HTTPS URL)"
+
+      - name: "[TC-WU03] WORKER_URL — Worker /health endpoint is accessible (HTTP 200)"
+        id: tc_wu03
+        continue-on-error: true
+        run: |
+          if [[ -z "${WORKER_URL:-}" ]]; then
+            echo "::warning::WORKER_URL is not set, skipping health check"
+            exit 0
+          fi
+          HEALTH_URL="${WORKER_URL%/}/health"
+          HTTP_STATUS=$(curl -sS -o /tmp/health-response.json -w "%{http_code}" \
+            --connect-timeout 10 --max-time 30 "${HEALTH_URL}" || echo "000")
+          if [[ "$HTTP_STATUS" != "200" ]]; then
+            echo "::error::Worker health check failed (${HEALTH_URL}, HTTP ${HTTP_STATUS})"
+            cat /tmp/health-response.json 2>/dev/null || true
+            exit 1
+          fi
+          echo "✅ Worker health check passed (${HEALTH_URL}, HTTP ${HTTP_STATUS})"
+          cat /tmp/health-response.json | jq . 2>/dev/null || cat /tmp/health-response.json
+
+      # ══════════════════════════════════════════════════════════════════════
+      # CLAWBRAIN_PROVIDER (Repository Variable, optional)
+      # ══════════════════════════════════════════════════════════════════════
+
+      - name: "[TC-CP01] CLAWBRAIN_PROVIDER — exists (optional)"
+        id: tc_cp01
+        continue-on-error: true
+        run: |
+          if [[ -z "${CLAWBRAIN_PROVIDER:-}" ]]; then
+            echo "ℹ️ CLAWBRAIN_PROVIDER is not set (optional)"
+            exit 0
+          fi
+          echo "✅ CLAWBRAIN_PROVIDER is set: ${CLAWBRAIN_PROVIDER}"
+
+      - name: "[TC-CP02] CLAWBRAIN_PROVIDER — is a known AI provider (if present)"
+        id: tc_cp02
+        continue-on-error: true
+        run: |
+          if [[ -z "${CLAWBRAIN_PROVIDER:-}" ]]; then
+            echo "ℹ️ CLAWBRAIN_PROVIDER is not set, skipping verification"
+            exit 0
+          fi
+          KNOWN_PROVIDERS=("gemini" "openai" "anthropic" "groq" "ollama" "mistral" "azure")
+          FOUND=false
+          for p in "${KNOWN_PROVIDERS[@]}"; do
+            if [[ "${CLAWBRAIN_PROVIDER}" == "$p" ]]; then
+              FOUND=true
+              break
+            fi
+          done
+          if [[ "$FOUND" != "true" ]]; then
+            echo "::warning::CLAWBRAIN_PROVIDER '${CLAWBRAIN_PROVIDER}' is not in the known provider list (${KNOWN_PROVIDERS[*]}); may be a custom provider"
+          else
+            echo "✅ CLAWBRAIN_PROVIDER '${CLAWBRAIN_PROVIDER}' is a known AI provider"
+          fi
+
+      # ══════════════════════════════════════════════════════════════════════
+      # CLAWBRAIN_MODEL (Repository Variable, optional)
+      # ══════════════════════════════════════════════════════════════════════
+
+      - name: "[TC-CM01] CLAWBRAIN_MODEL — exists (optional)"
+        id: tc_cm01
+        continue-on-error: true
+        run: |
+          if [[ -z "${CLAWBRAIN_MODEL:-}" ]]; then
+            echo "ℹ️ CLAWBRAIN_MODEL is not set (optional)"
+            exit 0
+          fi
+          echo "✅ CLAWBRAIN_MODEL is set: ${CLAWBRAIN_MODEL}"
+
+      - name: "[TC-CM02] CLAWBRAIN_MODEL — non-blank value check (if present)"
+        id: tc_cm02
+        continue-on-error: true
+        run: |
+          if [[ -z "${CLAWBRAIN_MODEL:-}" ]]; then
+            echo "ℹ️ CLAWBRAIN_MODEL is not set, skipping verification"
+            exit 0
+          fi
+          TRIMMED=$(echo "${CLAWBRAIN_MODEL}" | tr -d '[:space:]')
+          if [[ -z "$TRIMMED" ]]; then
+            echo "::error::CLAWBRAIN_MODEL is set but its value is blank"
+            exit 1
+          fi
+          echo "✅ CLAWBRAIN_MODEL is non-blank: ${CLAWBRAIN_MODEL}"
+
+      # ══════════════════════════════════════════════════════════════════════
+      # Final summary (always runs)
+      # ══════════════════════════════════════════════════════════════════════
+
+      - name: Output test summary
+        if: always()
+        env:
+          # Cloudflare
+          OUTCOME_CF01: ${{ steps.tc_cf01.outcome }}
+          OUTCOME_CF02: ${{ steps.tc_cf02.outcome }}
+          OUTCOME_CF03: ${{ steps.tc_cf03.outcome }}
+          OUTCOME_CF04: ${{ steps.tc_cf04.outcome }}
+          OUTCOME_CF05: ${{ steps.tc_cf05.outcome }}
+          OUTCOME_CF06: ${{ steps.tc_cf06.outcome }}
+          # GitHub Issues Token
+          OUTCOME_GH01: ${{ steps.tc_gh01.outcome }}
+          OUTCOME_GH02: ${{ steps.tc_gh02.outcome }}
+          OUTCOME_GH03: ${{ steps.tc_gh03.outcome }}
+          OUTCOME_GH04: ${{ steps.tc_gh04.outcome }}
+          OUTCOME_GH05: ${{ steps.tc_gh05.outcome }}
+          OUTCOME_GH06: ${{ steps.tc_gh06.outcome }}
+          OUTCOME_GH07: ${{ steps.tc_gh07.outcome }}
+          OUTCOME_GH08: ${{ steps.tc_gh08.outcome }}
+          # GitHub Webhook Secret
+          OUTCOME_WS01: ${{ steps.tc_ws01.outcome }}
+          OUTCOME_WS02: ${{ steps.tc_ws02.outcome }}
+          OUTCOME_WS03: ${{ steps.tc_ws03.outcome }}
+          # Telegram Bot Token
+          OUTCOME_TG01: ${{ steps.tc_tg01.outcome }}
+          OUTCOME_TG02: ${{ steps.tc_tg02.outcome }}
+          OUTCOME_TG03: ${{ steps.tc_tg03.outcome }}
+          OUTCOME_TG04: ${{ steps.tc_tg04.outcome }}
+          # Telegram Webhook Secret
+          OUTCOME_TW01: ${{ steps.tc_tw01.outcome }}
+          OUTCOME_TW02: ${{ steps.tc_tw02.outcome }}
+          OUTCOME_TW03: ${{ steps.tc_tw03.outcome }}
+          # Gemini API Key (optional)
+          OUTCOME_GM01: ${{ steps.tc_gm01.outcome }}
+          OUTCOME_GM02: ${{ steps.tc_gm02.outcome }}
+          OUTCOME_GM03: ${{ steps.tc_gm03.outcome }}
+          # ClawBrain API Key (optional)
+          OUTCOME_CB01: ${{ steps.tc_cb01.outcome }}
+          OUTCOME_CB02: ${{ steps.tc_cb02.outcome }}
+          OUTCOME_CB03: ${{ steps.tc_cb03.outcome }}
+          # Felo API Key (optional)
+          OUTCOME_FL01: ${{ steps.tc_fl01.outcome }}
+          OUTCOME_FL02: ${{ steps.tc_fl02.outcome }}
+          OUTCOME_FL03: ${{ steps.tc_fl03.outcome }}
+          # WORKER_NAME variable
+          OUTCOME_WN01: ${{ steps.tc_wn01.outcome }}
+          OUTCOME_WN02: ${{ steps.tc_wn02.outcome }}
+          OUTCOME_WN03: ${{ steps.tc_wn03.outcome }}
+          # WORKERS_SUBDOMAIN variable
+          OUTCOME_SUB01: ${{ steps.tc_sub01.outcome }}
+          OUTCOME_SUB02: ${{ steps.tc_sub02.outcome }}
+          # WORKER_URL variable
+          OUTCOME_WU01: ${{ steps.tc_wu01.outcome }}
+          OUTCOME_WU02: ${{ steps.tc_wu02.outcome }}
+          OUTCOME_WU03: ${{ steps.tc_wu03.outcome }}
+          # CLAWBRAIN_PROVIDER variable (optional)
+          OUTCOME_CP01: ${{ steps.tc_cp01.outcome }}
+          OUTCOME_CP02: ${{ steps.tc_cp02.outcome }}
+          # CLAWBRAIN_MODEL variable (optional)
+          OUTCOME_CM01: ${{ steps.tc_cm01.outcome }}
+          OUTCOME_CM02: ${{ steps.tc_cm02.outcome }}
+        run: |
+          icon() {
+            case "$1" in
+              success)   echo "✅" ;;
+              failure)   echo "❌" ;;
+              cancelled) echo "⏸️" ;;
+              skipped)   echo "⏭️" ;;
+              *)         echo "❓" ;;
+            esac
+          }
+
+          PASS=0; FAIL=0; SKIP=0
+          count_outcome() {
+            case "$1" in
+              success)           PASS=$((PASS+1)) ;;
+              failure)           FAIL=$((FAIL+1)) ;;
+              skipped|cancelled) SKIP=$((SKIP+1)) ;;
+            esac
+          }
+
+          # Count all outcomes
+          for v in \
+            "$OUTCOME_CF01" "$OUTCOME_CF02" "$OUTCOME_CF03" \
+            "$OUTCOME_CF04" "$OUTCOME_CF05" "$OUTCOME_CF06" \
+            "$OUTCOME_GH01" "$OUTCOME_GH02" "$OUTCOME_GH03" \
+            "$OUTCOME_GH04" "$OUTCOME_GH05" "$OUTCOME_GH06" \
+            "$OUTCOME_GH07" "$OUTCOME_GH08" \
+            "$OUTCOME_WS01" "$OUTCOME_WS02" "$OUTCOME_WS03" \
+            "$OUTCOME_TG01" "$OUTCOME_TG02" "$OUTCOME_TG03" "$OUTCOME_TG04" \
+            "$OUTCOME_TW01" "$OUTCOME_TW02" "$OUTCOME_TW03" \
+            "$OUTCOME_GM01" "$OUTCOME_GM02" "$OUTCOME_GM03" \
+            "$OUTCOME_CB01" "$OUTCOME_CB02" "$OUTCOME_CB03" \
+            "$OUTCOME_FL01" "$OUTCOME_FL02" "$OUTCOME_FL03" \
+            "$OUTCOME_WN01" "$OUTCOME_WN02" "$OUTCOME_WN03" \
+            "$OUTCOME_SUB01" "$OUTCOME_SUB02" \
+            "$OUTCOME_WU01" "$OUTCOME_WU02" "$OUTCOME_WU03" \
+            "$OUTCOME_CP01" "$OUTCOME_CP02" \
+            "$OUTCOME_CM01" "$OUTCOME_CM02"; do
+            count_outcome "$v"
+          done
+
+          {
+            echo "### 🔍 Lobster Burger Environment Variables Check Result"
+            echo ""
+            echo "> Repository: \`${GITHUB_REPOSITORY}\`　|　Run time: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+            echo ""
+            echo "| Statistic | Count |"
+            echo "|------|------|"
+            echo "| ✅ Passed | **${PASS}** |"
+            echo "| ❌ Failed | **${FAIL}** |"
+            echo "| ⏭️ Skipped | **${SKIP}** |"
+            echo "| Total | **$((PASS+FAIL+SKIP))** |"
+            echo ""
+
+            echo "#### Required Secrets"
+            echo ""
+            echo "| Test Case | Variable | Description | Result |"
+            echo "|---------|------|------|:----:|"
+            echo "| TC-CF01 | \`CLOUDFLARE_API_TOKEN\`    | exists                       | $(icon "$OUTCOME_CF01") |"
+            echo "| TC-CF02 | \`CLOUDFLARE_API_TOKEN\`    | format check (length >= 30)   | $(icon "$OUTCOME_CF02") |"
+            echo "| TC-CF03 | \`CLOUDFLARE_API_TOKEN\`    | Cloudflare API Token verify  | $(icon "$OUTCOME_CF03") |"
+            echo "| TC-CF04 | \`CLOUDFLARE_ACCOUNT_ID\`   | exists                       | $(icon "$OUTCOME_CF04") |"
+            echo "| TC-CF05 | \`CLOUDFLARE_ACCOUNT_ID\`   | format check (32-char hex)    | $(icon "$OUTCOME_CF05") |"
+            echo "| TC-CF06 | \`CLOUDFLARE_ACCOUNT_ID\`   | can access account Workers   | $(icon "$OUTCOME_CF06") |"
+            echo "| TC-GH01 | \`CLAW_SYS_GITHUB_TOKEN\`         | exists                       | $(icon "$OUTCOME_GH01") |"
+            echo "| TC-GH02 | \`CLAW_SYS_GITHUB_TOKEN\`         | format check (known PAT)     | $(icon "$OUTCOME_GH02") |"
+            echo "| TC-GH03 | \`CLAW_SYS_GITHUB_TOKEN\`         | GitHub API verify (GET /user)| $(icon "$OUTCOME_GH03") |"
+            echo "| TC-GH04 | \`CLAW_SYS_GITHUB_TOKEN\`         | Repository access check      | $(icon "$OUTCOME_GH04") |"
+            echo "| TC-GH05 | \`CLAW_SYS_GITHUB_TOKEN\`         | Issues read permission       | $(icon "$OUTCOME_GH05") |"
+            echo "| TC-GH06 | \`CLAW_SYS_GITHUB_TOKEN\`         | Actions read permission      | $(icon "$OUTCOME_GH06") |"
+            echo "| TC-GH07 | \`CLAW_SYS_GITHUB_TOKEN\`         | Actions write (workflow dispatch)| $(icon "$OUTCOME_GH07") |"
+            echo "| TC-GH08 | \`GitHub App\`              | Repository Installation check| $(icon "$OUTCOME_GH08") |"
+            echo "| TC-WS01 | \`GH_WEBHOOK_SECRET\`       | exists                       | $(icon "$OUTCOME_WS01") |"
+            echo "| TC-WS02 | \`GH_WEBHOOK_SECRET\`       | length at least 8 chars      | $(icon "$OUTCOME_WS02") |"
+            echo "| TC-WS03 | \`GH_WEBHOOK_SECRET\`       | no obviously weak passwords  | $(icon "$OUTCOME_WS03") |"
+            echo "| TC-TG01 | \`TELEGRAM_BOT_TOKEN\`      | exists                       | $(icon "$OUTCOME_TG01") |"
+            echo "| TC-TG02 | \`TELEGRAM_BOT_TOKEN\`      | format check ({id}:{token})  | $(icon "$OUTCOME_TG02") |"
+            echo "| TC-TG03 | \`TELEGRAM_BOT_TOKEN\`      | Telegram API verify (getMe)  | $(icon "$OUTCOME_TG03") |"
+            echo "| TC-TG04 | \`TELEGRAM_BOT_TOKEN\`      | Telegram Webhook config check| $(icon "$OUTCOME_TG04") |"
+            echo "| TC-TW01 | \`TELEGRAM_WEBHOOK_SECRET\` | exists                       | $(icon "$OUTCOME_TW01") |"
+            echo "| TC-TW02 | \`TELEGRAM_WEBHOOK_SECRET\` | length at least 8 chars      | $(icon "$OUTCOME_TW02") |"
+            echo "| TC-TW03 | \`TELEGRAM_WEBHOOK_SECRET\` | char restriction (A-Z a-z 0-9 _ -) | $(icon "$OUTCOME_TW03") |"
+            echo ""
+
+            echo "#### Optional Secrets"
+            echo ""
+            echo "| Test Case | Variable | Description | Result |"
+            echo "|---------|------|------|:----:|"
+            echo "| TC-GM01 | \`GEMINI_API_KEY\`      | exists (optional)            | $(icon "$OUTCOME_GM01") |"
+            echo "| TC-GM02 | \`GEMINI_API_KEY\`      | format check (if present)    | $(icon "$OUTCOME_GM02") |"
+            echo "| TC-GM03 | \`GEMINI_API_KEY\`      | Google AI API verify (if present) | $(icon "$OUTCOME_GM03") |"
+            echo "| TC-CB01 | \`CLAWBRAIN_API_KEY\`   | exists (optional)            | $(icon "$OUTCOME_CB01") |"
+            echo "| TC-CB02 | \`CLAWBRAIN_API_KEY\`   | non-blank check (if present) | $(icon "$OUTCOME_CB02") |"
+            echo "| TC-CB03 | \`CLAWBRAIN_API_KEY\`   | Provider API verify (if present) | $(icon "$OUTCOME_CB03") |"
+            echo "| TC-FL01 | \`FELO_API_KEY\`        | exists (optional)            | $(icon "$OUTCOME_FL01") |"
+            echo "| TC-FL02 | \`FELO_API_KEY\`        | non-blank check (if present) | $(icon "$OUTCOME_FL02") |"
+            echo "| TC-FL03 | \`FELO_API_KEY\`        | Felo API verify (if present) | $(icon "$OUTCOME_FL03") |"
+            echo ""
+
+            echo "#### Repository Variables"
+            echo ""
+            echo "| Test Case | Variable | Description | Result |"
+            echo "|---------|------|------|:----:|"
+            echo "| TC-WN01  | \`WORKER_NAME\`       | exists                        | $(icon "$OUTCOME_WN01") |"
+            echo "| TC-WN02  | \`WORKER_NAME\`       | format check (Cloudflare rules) | $(icon "$OUTCOME_WN02") |"
+            echo "| TC-WN03  | \`WORKER_NAME\`       | Worker exists in Cloudflare   | $(icon "$OUTCOME_WN03") |"
+            echo "| TC-SUB01 | \`WORKERS_SUBDOMAIN\` | exists                        | $(icon "$OUTCOME_SUB01") |"
+            echo "| TC-SUB02 | \`WORKERS_SUBDOMAIN\` | format check (alphanumeric+hyphen) | $(icon "$OUTCOME_SUB02") |"
+            echo "| TC-WU01  | \`WORKER_URL\`        | exists                        | $(icon "$OUTCOME_WU01") |"
+            echo "| TC-WU02  | \`WORKER_URL\`        | format check (HTTPS URL)      | $(icon "$OUTCOME_WU02") |"
+            echo "| TC-WU03  | \`WORKER_URL\`        | Worker /health endpoint accessible | $(icon "$OUTCOME_WU03") |"
+            echo "| TC-CP01  | \`CLAWBRAIN_PROVIDER\` | exists (optional)            | $(icon "$OUTCOME_CP01") |"
+            echo "| TC-CP02  | \`CLAWBRAIN_PROVIDER\` | is a known AI provider (if present) | $(icon "$OUTCOME_CP02") |"
+            echo "| TC-CM01  | \`CLAWBRAIN_MODEL\`    | exists (optional)            | $(icon "$OUTCOME_CM01") |"
+            echo "| TC-CM02  | \`CLAWBRAIN_MODEL\`    | non-blank check (if present) | $(icon "$OUTCOME_CM02") |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo ""
+          echo "📊 Tests complete: passed ${PASS}, failed ${FAIL}, skipped ${SKIP}"
+          echo "   See the Job Summary or the status of each Step for full results"
