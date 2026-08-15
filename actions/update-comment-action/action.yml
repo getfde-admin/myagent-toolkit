@@ -16,8 +16,8 @@ inputs:
   brain_meta:
     description: "HTML comment tag for downstream identification"
     required: false
-    default: '<!-- githubclaw-brain-result: {"source":"githubclaw-worker-brain"} -->'
-  claw_language:
+    default: '<!-- githubagent-brain-result: {"source":"githubagent-worker-brain"} -->'
+  agent_language:
     description: "Language for fallback messages (e.g., 'en', 'zh-TW')"
     required: false
 runs:
@@ -33,16 +33,16 @@ runs:
         INPUT_MESSAGE_FILE: ${{ inputs.message_file }}
         INPUT_BODY_FILE: ${{ inputs.body_file }}
         INPUT_BRAIN_META: ${{ inputs.brain_meta }}
-        INPUT_CLAW_LANGUAGE: ${{ inputs.claw_language }}
+        INPUT_AGENT_LANGUAGE: ${{ inputs.agent_language }}
       run: |
-        CLAW_LANGUAGE="${INPUT_CLAW_LANGUAGE:-${CLAW_LANGUAGE:-en}}"
+        AGENT_LANGUAGE="${INPUT_AGENT_LANGUAGE:-${AGENT_LANGUAGE:-en}}"
         ISSUE_NUMBER="${INPUT_ISSUE_NUMBER:-$PAYLOAD_ISSUE_NUMBER}"
         COMMENT_ID="${INPUT_COMMENT_ID:-$PAYLOAD_COMMENT_ID}"
         
         FILE_PATH="${INPUT_MESSAGE_FILE:-$INPUT_BODY_FILE}"
         if [ -z "$FILE_PATH" ] || [ ! -f "$FILE_PATH" ] || [ ! -s "$FILE_PATH" ]; then
           echo "Message file ($FILE_PATH) not found or empty, using fallback."
-          if [ "$CLAW_LANGUAGE" = "en" ]; then
+          if [ "$AGENT_LANGUAGE" = "en" ]; then
             BODY="⚠️ Execution completed, but no result file was found."
           else
             BODY="⚠️ 执行完毕，但未产生或找不到结果文件。"
@@ -54,9 +54,9 @@ runs:
         # Append brain_meta if not already present
         BRAIN_META="${INPUT_BRAIN_META}"
         if [ -z "$BRAIN_META" ]; then
-          BRAIN_META='<!-- githubclaw-brain-result: {"source":"githubclaw-worker-brain"} -->'
+          BRAIN_META='<!-- githubagent-brain-result: {"source":"githubagent-worker-brain"} -->'
         fi
-        if [[ "$BODY" != *"$BRAIN_META"* ]] && [[ "$BODY" != *"githubclaw-brain-result"* ]]; then
+        if [[ "$BODY" != *"$BRAIN_META"* ]] && [[ "$BODY" != *"githubagent-brain-result"* ]]; then
           BODY="${BODY}"$'\n\n'"${BRAIN_META}"
         fi
         

@@ -1,12 +1,12 @@
 {
-  "name": "简体中文",
-  "tagline": "Lobster Burger default template (Pi Coding Agent) — defaults to OpenRouter / DeepSeek V4 Flash",
-  "description": "Lobster Burger default template, now powered by Pi Coding Agent. Each Lobster (GitHub Issue) can pick its own provider and model, with API keys managed per provider. Defaults to OpenRouter and DeepSeek V4 Flash, while preserving the multi-provider lineup: Cloudflare, Anthropic, OpenAI, Gemini, Groq, OpenRouter, and Ollama Cloud.",
+  "name": "Default",
+  "tagline": "Agent Burger default template (Pi Coding Agent) — defaults to OpenRouter / DeepSeek V4 Flash",
+  "description": "Agent Burger default template, now powered by Pi Coding Agent. Each Agent (GitHub Issue) can pick its own provider and model, with API keys managed per provider. Defaults to OpenRouter and DeepSeek V4 Flash, while preserving the multi-provider lineup: Cloudflare, Anthropic, OpenAI, Gemini, Groq, OpenRouter, and Ollama Cloud.",
   "category": "ai",
-  "tags": ["zh", "zh-CN", "chinese", "pi", "byok", "cloudflare", "anthropic", "openai", "gemini", "groq", "openrouter", "ollama"],
+  "tags": ["default", "pi", "byok", "cloudflare", "anthropic", "openai", "gemini", "groq", "openrouter", "ollama"],
   "version": "1.0.0",
-  "support_url": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit/issues",
-  "homepage": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit",
+  "support_url": "https://github.com/jeffsia-blacksmith/myAgentToolkit/issues",
+  "homepage": "https://github.com/jeffsia-blacksmith/myAgentToolkit",
   "byokFlow": true,
   "byokConfig": {
     "path": ".pi/settings.json",

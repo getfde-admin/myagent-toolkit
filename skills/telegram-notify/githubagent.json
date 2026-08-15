@@ -5,7 +5,7 @@
   "category": "integration",
   "tags": ["telegram", "notification", "ci-cd", "messaging", "webhook"],
   "version": "1.1.0",
-  "support_url": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit/issues",
-  "homepage": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit",
+  "support_url": "https://github.com/jeffsia-blacksmith/myAgentToolkit/issues",
+  "homepage": "https://github.com/jeffsia-blacksmith/myAgentToolkit",
   "requireEnv": ["TELEGRAM_NOTIFY_BOT_TOKEN"]
 }

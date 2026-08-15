@@ -1,10 +1,10 @@
-name: 🛡️ Lobster Burger Environment Variables Check
+name: 🛡️ Agent Burger Environment Variables Check
 
 on:
   workflow_call:
   workflow_dispatch:
 
-run-name: "🔍 Lobster Burger Environment Variables Check"
+run-name: "🔍 Agent Burger Environment Variables Check"
 
 concurrency:
   group: check-env-permissions-${{ github.repository }}
@@ -14,7 +14,7 @@ permissions: {}
 
 jobs:
   check-env-permissions:
-    name: 🛡️ Lobster Burger Environment Variables Check
+    name: 🛡️ Agent Burger Environment Variables Check
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -22,7 +22,7 @@ jobs:
       # ── Required Secrets ──────────────────────────────────────────────────
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      CLAW_SYS_GITHUB_TOKEN: ${{ secrets.CLAW_SYS_GITHUB_TOKEN }}
+      AGENT_SYS_GITHUB_TOKEN: ${{ secrets.AGENT_SYS_GITHUB_TOKEN }}
       GH_WEBHOOK_SECRET: ${{ secrets.GH_WEBHOOK_SECRET }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
@@ -135,74 +135,74 @@ jobs:
           echo "✅ Can access Workers under the Cloudflare account (Worker count: ${WORKER_COUNT})"
 
       # ══════════════════════════════════════════════════════════════════════
-      # CLAW_SYS_GITHUB_TOKEN
+      # AGENT_SYS_GITHUB_TOKEN
       # ══════════════════════════════════════════════════════════════════════
 
-      - name: "[TC-GH01] CLAW_SYS_GITHUB_TOKEN — exists"
+      - name: "[TC-GH01] AGENT_SYS_GITHUB_TOKEN — exists"
         id: tc_gh01
         continue-on-error: true
         run: |
-          if [[ -z "${CLAW_SYS_GITHUB_TOKEN:-}" ]]; then
-            echo "::error::CLAW_SYS_GITHUB_TOKEN is not set (Settings → Secrets → Actions)"
+          if [[ -z "${AGENT_SYS_GITHUB_TOKEN:-}" ]]; then
+            echo "::error::AGENT_SYS_GITHUB_TOKEN is not set (Settings → Secrets → Actions)"
             exit 1
           fi
-          echo "✅ CLAW_SYS_GITHUB_TOKEN is set"
+          echo "✅ AGENT_SYS_GITHUB_TOKEN is set"
 
-      - name: "[TC-GH02] CLAW_SYS_GITHUB_TOKEN — format check (known GitHub PAT formats)"
+      - name: "[TC-GH02] AGENT_SYS_GITHUB_TOKEN — format check (known GitHub PAT formats)"
         id: tc_gh02
         continue-on-error: true
         run: |
-          if [[ -z "${CLAW_SYS_GITHUB_TOKEN:-}" ]]; then
-            echo "::warning::CLAW_SYS_GITHUB_TOKEN is not set, skipping format check"
+          if [[ -z "${AGENT_SYS_GITHUB_TOKEN:-}" ]]; then
+            echo "::warning::AGENT_SYS_GITHUB_TOKEN is not set, skipping format check"
             exit 0
           fi
-          len=${#CLAW_SYS_GITHUB_TOKEN}
-          if [[ "${CLAW_SYS_GITHUB_TOKEN}" =~ ^ghp_[A-Za-z0-9]{36}$ ]]; then
-            echo "✅ CLAW_SYS_GITHUB_TOKEN matches Fine-grained / Classic PAT format (ghp_...)"
-          elif [[ "${CLAW_SYS_GITHUB_TOKEN}" =~ ^github_pat_[A-Za-z0-9_]{82}$ ]]; then
-            echo "✅ CLAW_SYS_GITHUB_TOKEN matches Fine-grained PAT format (github_pat_...)"
-          elif [[ "${CLAW_SYS_GITHUB_TOKEN}" =~ ^[0-9a-f]{40}$ ]]; then
-            echo "✅ CLAW_SYS_GITHUB_TOKEN matches legacy Classic PAT format (40-char hex)"
+          len=${#AGENT_SYS_GITHUB_TOKEN}
+          if [[ "${AGENT_SYS_GITHUB_TOKEN}" =~ ^ghp_[A-Za-z0-9]{36}$ ]]; then
+            echo "✅ AGENT_SYS_GITHUB_TOKEN matches Fine-grained / Classic PAT format (ghp_...)"
+          elif [[ "${AGENT_SYS_GITHUB_TOKEN}" =~ ^github_pat_[A-Za-z0-9_]{82}$ ]]; then
+            echo "✅ AGENT_SYS_GITHUB_TOKEN matches Fine-grained PAT format (github_pat_...)"
+          elif [[ "${AGENT_SYS_GITHUB_TOKEN}" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "✅ AGENT_SYS_GITHUB_TOKEN matches legacy Classic PAT format (40-char hex)"
           elif [[ $len -ge 20 ]]; then
-            echo "⚠️ CLAW_SYS_GITHUB_TOKEN did not match a known format but has sufficient length (${len} chars); may be a custom format"
+            echo "⚠️ AGENT_SYS_GITHUB_TOKEN did not match a known format but has sufficient length (${len} chars); may be a custom format"
           else
-            echo "::error::CLAW_SYS_GITHUB_TOKEN has an abnormal length (${len} chars); may not be a valid GitHub Token"
+            echo "::error::AGENT_SYS_GITHUB_TOKEN has an abnormal length (${len} chars); may not be a valid GitHub Token"
             exit 1
           fi
 
-      - name: "[TC-GH03] CLAW_SYS_GITHUB_TOKEN — GitHub API verification (GET /user)"
+      - name: "[TC-GH03] AGENT_SYS_GITHUB_TOKEN — GitHub API verification (GET /user)"
         id: tc_gh03
         continue-on-error: true
         run: |
-          if [[ -z "${CLAW_SYS_GITHUB_TOKEN:-}" ]]; then
-            echo "::warning::CLAW_SYS_GITHUB_TOKEN is not set, skipping API verification"
+          if [[ -z "${AGENT_SYS_GITHUB_TOKEN:-}" ]]; then
+            echo "::warning::AGENT_SYS_GITHUB_TOKEN is not set, skipping API verification"
             exit 0
           fi
           RESPONSE=$(curl -sS \
-            -H "Authorization: Bearer ${CLAW_SYS_GITHUB_TOKEN}" \
+            -H "Authorization: Bearer ${AGENT_SYS_GITHUB_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "https://api.github.com/user")
           LOGIN=$(echo "$RESPONSE" | jq -r '.login // empty')
           if [[ -z "$LOGIN" ]]; then
-            echo "::error::CLAW_SYS_GITHUB_TOKEN cannot call the GitHub API (token invalid or expired): $(echo "$RESPONSE" | jq -c '{message}')"
+            echo "::error::AGENT_SYS_GITHUB_TOKEN cannot call the GitHub API (token invalid or expired): $(echo "$RESPONSE" | jq -c '{message}')"
             exit 1
           fi
-          echo "✅ CLAW_SYS_GITHUB_TOKEN is valid (GitHub user: ${LOGIN})"
+          echo "✅ AGENT_SYS_GITHUB_TOKEN is valid (GitHub user: ${LOGIN})"
 
-      - name: "[TC-GH04] CLAW_SYS_GITHUB_TOKEN — Repository access check (GET /repos/{owner}/{repo})"
+      - name: "[TC-GH04] AGENT_SYS_GITHUB_TOKEN — Repository access check (GET /repos/{owner}/{repo})"
         id: tc_gh04
         continue-on-error: true
         run: |
-          if [[ -z "${CLAW_SYS_GITHUB_TOKEN:-}" ]]; then
-            echo "::warning::CLAW_SYS_GITHUB_TOKEN is not set, skipping Repository access check"
+          if [[ -z "${AGENT_SYS_GITHUB_TOKEN:-}" ]]; then
+            echo "::warning::AGENT_SYS_GITHUB_TOKEN is not set, skipping Repository access check"
             exit 0
           fi
           HTTP_STATUS=$(curl -sS \
             -D /tmp/gh-repo-headers.txt \
             -o /tmp/gh-repo-response.json \
             -w "%{http_code}" \
-            -H "Authorization: Bearer ${CLAW_SYS_GITHUB_TOKEN}" \
+            -H "Authorization: Bearer ${AGENT_SYS_GITHUB_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "https://api.github.com/repos/${GITHUB_REPOSITORY}")
@@ -211,50 +211,50 @@ jobs:
           REPO_NAME=$(jq -r '.full_name // empty' /tmp/gh-repo-response.json 2>/dev/null || true)
           case "$HTTP_STATUS" in
             200)
-              echo "✅ CLAW_SYS_GITHUB_TOKEN can access Repository: ${REPO_NAME:-${GITHUB_REPOSITORY}}"
+              echo "✅ AGENT_SYS_GITHUB_TOKEN can access Repository: ${REPO_NAME:-${GITHUB_REPOSITORY}}"
               ;;
             401)
-              echo "::error::CLAW_SYS_GITHUB_TOKEN is invalid, expired, or has been revoked (GET /repos returned HTTP 401): ${MSG}"
+              echo "::error::AGENT_SYS_GITHUB_TOKEN is invalid, expired, or has been revoked (GET /repos returned HTTP 401): ${MSG}"
               exit 1
               ;;
             403)
-              echo "::error::CLAW_SYS_GITHUB_TOKEN cannot access Repository (HTTP 403): ${MSG}"
+              echo "::error::AGENT_SYS_GITHUB_TOKEN cannot access Repository (HTTP 403): ${MSG}"
               if [[ -n "${ACCEPTED_PERMS:-}" ]]; then
                 echo "::error::GitHub API suggested permissions: ${ACCEPTED_PERMS}"
               fi
               exit 1
               ;;
             404)
-              echo "::error::CLAW_SYS_GITHUB_TOKEN could not find or access Repository '${GITHUB_REPOSITORY}' (HTTP 404). This usually means the token has no repo access, the repo authorization has been removed, or the token is only authorized for other repositories."
+              echo "::error::AGENT_SYS_GITHUB_TOKEN could not find or access Repository '${GITHUB_REPOSITORY}' (HTTP 404). This usually means the token has no repo access, the repo authorization has been removed, or the token is only authorized for other repositories."
               exit 1
               ;;
             *)
-              echo "::error::CLAW_SYS_GITHUB_TOKEN Repository access check returned an unexpected status (HTTP ${HTTP_STATUS}): ${MSG}"
+              echo "::error::AGENT_SYS_GITHUB_TOKEN Repository access check returned an unexpected status (HTTP ${HTTP_STATUS}): ${MSG}"
               cat /tmp/gh-repo-response.json 2>/dev/null | head -n 5 || true
               exit 1
               ;;
           esac
 
-      - name: "[TC-GH05] CLAW_SYS_GITHUB_TOKEN — Issues read permission (GET /repos/{owner}/{repo}/issues)"
+      - name: "[TC-GH05] AGENT_SYS_GITHUB_TOKEN — Issues read permission (GET /repos/{owner}/{repo}/issues)"
         id: tc_gh05
         continue-on-error: true
         run: |
-          if [[ -z "${CLAW_SYS_GITHUB_TOKEN:-}" ]]; then
-            echo "::warning::CLAW_SYS_GITHUB_TOKEN is not set, skipping Issues read permission check"
+          if [[ -z "${AGENT_SYS_GITHUB_TOKEN:-}" ]]; then
+            echo "::warning::AGENT_SYS_GITHUB_TOKEN is not set, skipping Issues read permission check"
             exit 0
           fi
           HTTP_STATUS=$(curl -sS \
             -D /tmp/gh-issues-headers.txt \
             -o /tmp/gh-issues-response.json \
             -w "%{http_code}" \
-            -H "Authorization: Bearer ${CLAW_SYS_GITHUB_TOKEN}" \
+            -H "Authorization: Bearer ${AGENT_SYS_GITHUB_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues?state=all&per_page=1")
           if [[ -z "$HTTP_STATUS" || "$HTTP_STATUS" -lt 200 || "$HTTP_STATUS" -ge 300 ]]; then
             MSG=$(cat /tmp/gh-issues-response.json | jq -r 'if type=="object" and has("message") then .message else empty end' 2>/dev/null || true)
             ACCEPTED_PERMS=$(tr -d '\r' < /tmp/gh-issues-headers.txt | awk -F': ' 'tolower($1)=="x-accepted-github-permissions"{print $2}' | tail -n 1)
-            echo "::error::CLAW_SYS_GITHUB_TOKEN failed to read Issues (HTTP ${HTTP_STATUS}): ${MSG}"
+            echo "::error::AGENT_SYS_GITHUB_TOKEN failed to read Issues (HTTP ${HTTP_STATUS}): ${MSG}"
             if [[ -n "${ACCEPTED_PERMS:-}" ]]; then
               echo "::error::GitHub API suggested permissions: ${ACCEPTED_PERMS}"
             fi
@@ -263,52 +263,52 @@ jobs:
           fi
           MSG=$(cat /tmp/gh-issues-response.json | jq -r 'if type=="object" and has("message") then .message else empty end' 2>/dev/null || true)
           if [[ -n "$MSG" ]]; then
-            echo "::error::CLAW_SYS_GITHUB_TOKEN received an unexpected message while reading Issues: ${MSG}"
+            echo "::error::AGENT_SYS_GITHUB_TOKEN received an unexpected message while reading Issues: ${MSG}"
             exit 1
           fi
-          echo "✅ CLAW_SYS_GITHUB_TOKEN has Issues read permission"
+          echo "✅ AGENT_SYS_GITHUB_TOKEN has Issues read permission"
 
-      - name: "[TC-GH06] CLAW_SYS_GITHUB_TOKEN — Actions read permission (GET /repos/{owner}/{repo}/actions/workflows)"
+      - name: "[TC-GH06] AGENT_SYS_GITHUB_TOKEN — Actions read permission (GET /repos/{owner}/{repo}/actions/workflows)"
         id: tc_gh06
         continue-on-error: true
         run: |
-          if [[ -z "${CLAW_SYS_GITHUB_TOKEN:-}" ]]; then
-            echo "::warning::CLAW_SYS_GITHUB_TOKEN is not set, skipping Actions read permission check"
+          if [[ -z "${AGENT_SYS_GITHUB_TOKEN:-}" ]]; then
+            echo "::warning::AGENT_SYS_GITHUB_TOKEN is not set, skipping Actions read permission check"
             exit 0
           fi
           HTTP_STATUS=$(curl -sS \
             -D /tmp/gh-actions-read-headers.txt \
             -o /tmp/gh-actions-read-response.json \
             -w "%{http_code}" \
-            -H "Authorization: Bearer ${CLAW_SYS_GITHUB_TOKEN}" \
+            -H "Authorization: Bearer ${AGENT_SYS_GITHUB_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows")
           MSG=$(jq -r '.message // empty' /tmp/gh-actions-read-response.json 2>/dev/null || true)
           ACCEPTED_PERMS=$(tr -d '\r' < /tmp/gh-actions-read-headers.txt | awk -F': ' 'tolower($1)=="x-accepted-github-permissions"{print $2}' | tail -n 1)
           if [[ -z "$HTTP_STATUS" || "$HTTP_STATUS" -lt 200 || "$HTTP_STATUS" -ge 300 ]]; then
-            echo "::error::CLAW_SYS_GITHUB_TOKEN has no Actions read permission (HTTP ${HTTP_STATUS}): ${MSG}"
+            echo "::error::AGENT_SYS_GITHUB_TOKEN has no Actions read permission (HTTP ${HTTP_STATUS}): ${MSG}"
             if [[ -n "${ACCEPTED_PERMS:-}" ]]; then
               echo "::error::GitHub API suggested permissions: ${ACCEPTED_PERMS}"
             fi
             exit 1
           fi
           if echo "$MSG" | grep -qiE "Not Found|Resource not accessible|Bad credentials"; then
-            echo "::error::CLAW_SYS_GITHUB_TOKEN has no Actions read permission: ${MSG}"
+            echo "::error::AGENT_SYS_GITHUB_TOKEN has no Actions read permission: ${MSG}"
             if [[ -n "${ACCEPTED_PERMS:-}" ]]; then
               echo "::error::GitHub API suggested permissions: ${ACCEPTED_PERMS}"
             fi
             exit 1
           fi
           COUNT=$(jq '.total_count // 0' /tmp/gh-actions-read-response.json 2>/dev/null || echo "0")
-          echo "✅ CLAW_SYS_GITHUB_TOKEN has Actions read permission (Workflow count: ${COUNT})"
+          echo "✅ AGENT_SYS_GITHUB_TOKEN has Actions read permission (Workflow count: ${COUNT})"
 
-      - name: "[TC-GH07] CLAW_SYS_GITHUB_TOKEN — Actions write permission (Workflow Dispatch access check)"
+      - name: "[TC-GH07] AGENT_SYS_GITHUB_TOKEN — Actions write permission (Workflow Dispatch access check)"
         id: tc_gh07
         continue-on-error: true
         run: |
-          if [[ -z "${CLAW_SYS_GITHUB_TOKEN:-}" ]]; then
-            echo "::warning::CLAW_SYS_GITHUB_TOKEN is not set, skipping Actions write permission check"
+          if [[ -z "${AGENT_SYS_GITHUB_TOKEN:-}" ]]; then
+            echo "::warning::AGENT_SYS_GITHUB_TOKEN is not set, skipping Actions write permission check"
             exit 0
           fi
           # Attempt a dispatch using the currently running workflow (check-env-permissions.yml);
@@ -318,7 +318,7 @@ jobs:
           # HTTP 404 → workflow does not exist or is inaccessible (should not happen)
           HTTP_STATUS=$(curl -sS -D /tmp/gh-actions-write-headers.txt -o /tmp/dispatch-response.json -w "%{http_code}" \
             -X POST \
-            -H "Authorization: Bearer ${CLAW_SYS_GITHUB_TOKEN}" \
+            -H "Authorization: Bearer ${AGENT_SYS_GITHUB_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             -H "Content-Type: application/json" \
@@ -328,10 +328,10 @@ jobs:
           MSG=$(jq -r '.message // empty' /tmp/dispatch-response.json 2>/dev/null || true)
           case "$HTTP_STATUS" in
             422)
-              echo "✅ CLAW_SYS_GITHUB_TOKEN has Actions write (workflow dispatch) permission (HTTP 422: ref does not exist but is accessible)"
+              echo "✅ AGENT_SYS_GITHUB_TOKEN has Actions write (workflow dispatch) permission (HTTP 422: ref does not exist but is accessible)"
               ;;
             401|403)
-              echo "::error::CLAW_SYS_GITHUB_TOKEN has no Actions write (workflow dispatch) permission (HTTP ${HTTP_STATUS}): ${MSG}"
+              echo "::error::AGENT_SYS_GITHUB_TOKEN has no Actions write (workflow dispatch) permission (HTTP ${HTTP_STATUS}): ${MSG}"
               if [[ -n "${ACCEPTED_PERMS:-}" ]]; then
                 echo "::error::GitHub API suggested permissions: ${ACCEPTED_PERMS}"
               fi
@@ -350,15 +350,15 @@ jobs:
         id: tc_gh08
         continue-on-error: true
         run: |
-          if [[ -z "${CLAW_SYS_GITHUB_TOKEN:-}" ]]; then
-            echo "::warning::CLAW_SYS_GITHUB_TOKEN is not set, skipping GitHub App installation check"
+          if [[ -z "${AGENT_SYS_GITHUB_TOKEN:-}" ]]; then
+            echo "::warning::AGENT_SYS_GITHUB_TOKEN is not set, skipping GitHub App installation check"
             exit 0
           fi
           HTTP_STATUS=$(curl -sS \
             -D /tmp/gh-app-install-headers.txt \
             -o /tmp/gh-app-install-response.json \
             -w "%{http_code}" \
-            -H "Authorization: Bearer ${CLAW_SYS_GITHUB_TOKEN}" \
+            -H "Authorization: Bearer ${AGENT_SYS_GITHUB_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/installation")
@@ -372,7 +372,7 @@ jobs:
               echo "✅ GitHub App is installed on this Repository (installation_id: ${INSTALLATION_ID:-unknown}, app_id: ${APP_ID:-unknown}, app_slug: ${APP_SLUG:-unknown})"
               ;;
             404)
-              echo "::error::Could not find a GitHub App installation for '${GITHUB_REPOSITORY}' (HTTP 404). This usually means the GitHub App is not installed on this repo yet, or the current CLAW_SYS_GITHUB_TOKEN cannot query the installation status."
+              echo "::error::Could not find a GitHub App installation for '${GITHUB_REPOSITORY}' (HTTP 404). This usually means the GitHub App is not installed on this repo yet, or the current AGENT_SYS_GITHUB_TOKEN cannot query the installation status."
               exit 1
               ;;
             401|403)
@@ -380,7 +380,7 @@ jobs:
               if [[ -n "${ACCEPTED_PERMS:-}" ]]; then
                 echo "::error::GitHub API suggested permissions: ${ACCEPTED_PERMS}"
               fi
-              echo "::error::If you have installed the GitHub App, please confirm CLAW_SYS_GITHUB_TOKEN still has access to this repo, or use GitHub App credentials for installation verification."
+              echo "::error::If you have installed the GitHub App, please confirm AGENT_SYS_GITHUB_TOKEN still has access to this repo, or use GitHub App credentials for installation verification."
               exit 1
               ;;
             *)
@@ -1113,7 +1113,7 @@ jobs:
           done
 
           {
-            echo "### 🔍 Lobster Burger Environment Variables Check Result"
+            echo "### 🔍 Agent Burger Environment Variables Check Result"
             echo ""
             echo "> Repository: \`${GITHUB_REPOSITORY}\`　|　Run time: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
             echo ""
@@ -1135,13 +1135,13 @@ jobs:
             echo "| TC-CF04 | \`CLOUDFLARE_ACCOUNT_ID\`   | exists                       | $(icon "$OUTCOME_CF04") |"
             echo "| TC-CF05 | \`CLOUDFLARE_ACCOUNT_ID\`   | format check (32-char hex)    | $(icon "$OUTCOME_CF05") |"
             echo "| TC-CF06 | \`CLOUDFLARE_ACCOUNT_ID\`   | can access account Workers   | $(icon "$OUTCOME_CF06") |"
-            echo "| TC-GH01 | \`CLAW_SYS_GITHUB_TOKEN\`         | exists                       | $(icon "$OUTCOME_GH01") |"
-            echo "| TC-GH02 | \`CLAW_SYS_GITHUB_TOKEN\`         | format check (known PAT)     | $(icon "$OUTCOME_GH02") |"
-            echo "| TC-GH03 | \`CLAW_SYS_GITHUB_TOKEN\`         | GitHub API verify (GET /user)| $(icon "$OUTCOME_GH03") |"
-            echo "| TC-GH04 | \`CLAW_SYS_GITHUB_TOKEN\`         | Repository access check      | $(icon "$OUTCOME_GH04") |"
-            echo "| TC-GH05 | \`CLAW_SYS_GITHUB_TOKEN\`         | Issues read permission       | $(icon "$OUTCOME_GH05") |"
-            echo "| TC-GH06 | \`CLAW_SYS_GITHUB_TOKEN\`         | Actions read permission      | $(icon "$OUTCOME_GH06") |"
-            echo "| TC-GH07 | \`CLAW_SYS_GITHUB_TOKEN\`         | Actions write (workflow dispatch)| $(icon "$OUTCOME_GH07") |"
+            echo "| TC-GH01 | \`AGENT_SYS_GITHUB_TOKEN\`         | exists                       | $(icon "$OUTCOME_GH01") |"
+            echo "| TC-GH02 | \`AGENT_SYS_GITHUB_TOKEN\`         | format check (known PAT)     | $(icon "$OUTCOME_GH02") |"
+            echo "| TC-GH03 | \`AGENT_SYS_GITHUB_TOKEN\`         | GitHub API verify (GET /user)| $(icon "$OUTCOME_GH03") |"
+            echo "| TC-GH04 | \`AGENT_SYS_GITHUB_TOKEN\`         | Repository access check      | $(icon "$OUTCOME_GH04") |"
+            echo "| TC-GH05 | \`AGENT_SYS_GITHUB_TOKEN\`         | Issues read permission       | $(icon "$OUTCOME_GH05") |"
+            echo "| TC-GH06 | \`AGENT_SYS_GITHUB_TOKEN\`         | Actions read permission      | $(icon "$OUTCOME_GH06") |"
+            echo "| TC-GH07 | \`AGENT_SYS_GITHUB_TOKEN\`         | Actions write (workflow dispatch)| $(icon "$OUTCOME_GH07") |"
             echo "| TC-GH08 | \`GitHub App\`              | Repository Installation check| $(icon "$OUTCOME_GH08") |"
             echo "| TC-WS01 | \`GH_WEBHOOK_SECRET\`       | exists                       | $(icon "$OUTCOME_WS01") |"
             echo "| TC-WS02 | \`GH_WEBHOOK_SECRET\`       | length at least 8 chars      | $(icon "$OUTCOME_WS02") |"

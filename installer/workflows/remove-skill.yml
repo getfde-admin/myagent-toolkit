@@ -28,7 +28,7 @@ concurrency:
 env:
   SKILL_NAME: "${{ inputs.skill_name }}"
   ISSUE_NUMBER: "${{ inputs.issue_number }}"
-  PUSH_TOKEN: "${{ secrets.CLAW_SYS_GITHUB_TOKEN || github.token }}"
+  PUSH_TOKEN: "${{ secrets.AGENT_SYS_GITHUB_TOKEN || github.token }}"
   AUTOMATION_GIT_USER_NAME: "${{ vars['AUTOMATION_GIT_USER_NAME'] || 'github-actions[bot]' }}"
   AUTOMATION_GIT_USER_EMAIL: "${{ vars['AUTOMATION_GIT_USER_EMAIL'] || 'github-actions[bot]@users.noreply.github.com' }}"
 

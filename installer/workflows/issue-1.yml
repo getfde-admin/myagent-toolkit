@@ -1,6 +1,6 @@
 # This workflow picks up a given issue, runs Pi Coding Agent, and writes the result back as an issue comment and on the issue branch.
 # Note: the whole flow runs directly on a GitHub Actions runner; this YAML does not use a Docker container.
-name: '🦞 Lobster Task #1'
+name: '🤖 Agent Task #1'
 
 # Two trigger modes are supported:
 # 1. workflow_dispatch: from the GitHub Actions UI after entering parameters manually
@@ -43,7 +43,7 @@ on:
     types: [coding-agent]
 
 # Run name shown in the Actions UI — includes the issue number for easy identification.
-run-name: "🦞 Lobster #${{ github.event_name == 'repository_dispatch' && github.event.client_payload.issue_number || inputs.issue_number }}"
+run-name: "🤖 Agent #${{ github.event_name == 'repository_dispatch' && github.event.client_payload.issue_number || inputs.issue_number }}"
 
 # Prevent multiple agents running for the same repo+issue from overwriting each other.
 concurrency:
@@ -273,14 +273,14 @@ jobs:
 
       - name: Task failure handling
         if: failure() && steps.pi_task.conclusion == 'failure'
-        uses: jeffsia-blacksmith/altShiftClawToolkit/actions/error-handler-action@v1
+        uses: jeffsia-blacksmith/myAgentToolkit/actions/error-handler-action@v1
         with:
           output_file: artifacts/${{ env.COMMENT_ID }}/error.log
           result_file: artifacts/${{ env.COMMENT_ID }}/result.md
 
       - name: Report execution result
         if: always()
-        uses: jeffsia-blacksmith/altShiftClawToolkit/actions/update-comment-action@v1
+        uses: jeffsia-blacksmith/myAgentToolkit/actions/update-comment-action@v1
         with:
           issue_number: ${{ env.ISSUE_NUMBER }}
           comment_id: ${{ env.COMMENT_ID }}

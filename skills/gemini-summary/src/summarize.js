@@ -250,7 +250,7 @@ async function fetchHtml(url) {
     redirect: "follow",
     headers: {
       "User-Agent":
-        "GitHubClawDev/summary (+https://github.com/rewq0494/GitHubClawDev)",
+        "GitHubAgentDev/summary (+https://github.com/rewq0494/GitHubAgentDev)",
       Accept: "text/html,application/xhtml+xml",
     },
   });
@@ -324,7 +324,7 @@ function buildUrlPrompt({
   content,
   truncated,
 }) {
-  const code = process.env.CLAW_LANGUAGE || "en";
+  const code = process.env.AGENT_LANGUAGE || "en";
   const map = {
     "zh-CN": "Simplified Chinese",
     "en": "English"
@@ -513,7 +513,7 @@ async function handleUrl(input, client) {
 // ---------------------------------------------------------------------------
 
 function buildPdfPrompt() {
-  const code = process.env.CLAW_LANGUAGE || "en";
+  const code = process.env.AGENT_LANGUAGE || "en";
   const map = {
     "zh-CN": "Simplified Chinese",
     "en": "English"
@@ -738,7 +738,7 @@ function getVideoMimeType(filePath) {
 }
 
 function buildVideoPrompt() {
-  const code = process.env.CLAW_LANGUAGE || "en";
+  const code = process.env.AGENT_LANGUAGE || "en";
   const map = {
     "zh-CN": "Simplified Chinese",
     "en": "English"
@@ -908,7 +908,7 @@ function getAudioMimeType(filePath) {
 }
 
 function buildAudioPrompt() {
-  const code = process.env.CLAW_LANGUAGE || "en";
+  const code = process.env.AGENT_LANGUAGE || "en";
   const map = {
     "zh-CN": "Simplified Chinese",
     "en": "English"

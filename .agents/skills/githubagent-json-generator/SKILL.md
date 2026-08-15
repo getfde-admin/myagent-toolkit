@@ -1,11 +1,11 @@
 ---
-name: githubclaw-json-generator
-description: 为 GitHubClawToolkit 的 skill 或 template 目录生成 githubclaw.json metadata 档案。当使用者新增、更新 skill/template 并需要建立或更新 githubclaw.json 时触发。也适用于批次为多个 skill/template 产生 githubclaw.json 的情境。不适用于与 GitHubClawToolkit 无关的一般 JSON 生成需求。
+name: githubagent-json-generator
+description: 为 GitHubAgentToolkit 的 skill 或 template 目录生成 githubagent.json metadata 档案。当使用者新增、更新 skill/template 并需要建立或更新 githubagent.json 时触发。也适用于批次为多个 skill/template 产生 githubagent.json 的情境。不适用于与 GitHubAgentToolkit 无关的一般 JSON 生成需求。
 ---
 
-# GitHubClaw JSON Generator
+# GitHubAgent JSON Generator
 
-为 GitHubClawToolkit repo 中的 skill 或 template 目录产生标准化的 `githubclaw.json` metadata 档案，供 GitHubClawCore 统一解析使用。
+为 GitHubAgentToolkit repo 中的 skill 或 template 目录产生标准化的 `githubagent.json` metadata 档案，供 GitHubAgentCore 统一解析使用。
 
 ## 执行流程
 
@@ -13,7 +13,7 @@ description: 为 GitHubClawToolkit 的 skill 或 template 目录生成 githubcla
 
 确认使用者指定的目标路径。目标必须是 `skills/` 或 `templates/` 下的某个子目录。
 
-- 若使用者未指定，询问要为哪个 skill 或 template 产生 `githubclaw.json`。
+- 若使用者未指定，询问要为哪个 skill 或 template 产生 `githubagent.json`。
 - 若使用者要求批次处理，逐一对每个目录执行步骤 2–5。
 
 ### 步骤 2：扫描目标目录
@@ -43,13 +43,13 @@ description: 为 GitHubClawToolkit 的 skill 或 template 目录生成 githubcla
 4. **category**：根据功能选择合适分类（见 schema.md 中的合法值清单）
 5. **tags**：3-6 个相关标签，使用小写英文
 6. **version**：优先从 `package.json` 取得，无则预设 `1.0.0`
-7. **support_url**：固定为 `https://github.com/jeffsia-blacksmith/altShiftClawToolkit/issues`
-8. **homepage**：固定为 `https://github.com/jeffsia-blacksmith/altShiftClawToolkit`
+7. **support_url**：固定为 `https://github.com/jeffsia-blacksmith/myAgentToolkit/issues`
+8. **homepage**：固定为 `https://github.com/jeffsia-blacksmith/myAgentToolkit`
 9. **requireEnv**：从 SKILL.md 的 `required_env` 栏位、README 中的环境变数说明、或 scripts 中的 `process.env` 提取
 
 ### 步骤 4：生成 JSON
 
-读取 `assets/githubclaw.template.json` 作为结构范本，填入步骤 3 决定的值，将结果写入目标目录的 `githubclaw.json`。
+读取 `assets/githubagent.template.json` 作为结构范本，填入步骤 3 决定的值，将结果写入目标目录的 `githubagent.json`。
 
 确保 JSON 格式正确：
 - 使用 2 空格缩排
@@ -77,8 +77,8 @@ description: 为 GitHubClawToolkit 的 skill 或 template 目录生成 githubcla
   "category": "content",
   "tags": ["summarization", "gemini", "content-analysis", "multilingual"],
   "version": "1.0.0",
-  "support_url": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit/issues",
-  "homepage": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit",
+  "support_url": "https://github.com/jeffsia-blacksmith/myAgentToolkit/issues",
+  "homepage": "https://github.com/jeffsia-blacksmith/myAgentToolkit",
   "requireEnv": ["GEMINI_API_KEY"]
 }
 ```
@@ -89,6 +89,6 @@ description: 为 GitHubClawToolkit 的 skill 或 template 目录生成 githubcla
 |------|---------|
 | 目标目录不存在 | 提示使用者确认路径 |
 | 目标目录无任何描述档案 | 请使用者提供 name、tagline、description |
-| 已存在 `githubclaw.json` | 询问使用者是否要覆盖更新 |
+| 已存在 `githubagent.json` | 询问使用者是否要覆盖更新 |
 | 无法判断 category | 预设使用 `data`，并提示使用者确认 |
 | 无法判断 requireEnv | 预设为空阵列 `[]`，并提示使用者确认 |

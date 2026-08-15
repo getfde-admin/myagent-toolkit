@@ -1,6 +1,6 @@
 # Actions
 
-此目录收录 altShiftClawToolkit Issue 处理流水线所使用的 Composite GitHub Actions。每个 Action 皆可独立被其他 Workflow 引用。
+此目录收录 myAgentToolkit Issue 处理流水线所使用的 Composite GitHub Actions。每个 Action 皆可独立被其他 Workflow 引用。
 
 ## Actions 一览
 

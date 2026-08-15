@@ -1,6 +1,6 @@
 # Skills
 
-此目录收录 altShiftClawToolkit 的 Agent Skills。每个 skill 有独立的 `SKILL.md`、`githubclaw.json`，以及 `scripts/` 执行脚本。
+此目录收录 myAgentToolkit 的 Agent Skills。每个 skill 有独立的 `SKILL.md`、`githubagent.json`，以及 `scripts/` 执行脚本。
 
 ## Skills 一览
 

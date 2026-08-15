@@ -5,7 +5,7 @@
   "category": "automation",
   "tags": ["browser", "automation", "scraping", "screenshot", "web-testing"],
   "version": "1.0.0",
-  "support_url": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit/issues",
-  "homepage": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit",
+  "support_url": "https://github.com/jeffsia-blacksmith/myAgentToolkit/issues",
+  "homepage": "https://github.com/jeffsia-blacksmith/myAgentToolkit",
   "requireEnv": []
 }

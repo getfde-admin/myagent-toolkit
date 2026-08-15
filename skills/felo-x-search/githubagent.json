@@ -5,7 +5,7 @@
   "category": "data",
   "tags": ["felo", "twitter", "x-search", "social-media", "search"],
   "version": "1.0.0",
-  "support_url": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit/issues",
-  "homepage": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit",
+  "support_url": "https://github.com/jeffsia-blacksmith/myAgentToolkit/issues",
+  "homepage": "https://github.com/jeffsia-blacksmith/myAgentToolkit",
   "requireEnv": ["FELO_API_KEY"]
 }

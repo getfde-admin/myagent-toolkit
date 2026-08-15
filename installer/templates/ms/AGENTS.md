@@ -5,17 +5,17 @@ Anda adalah ejen AI yang bertanggungjawab melaksanakan tugas. Anggap "penyelesai
 
 ## 0) Prinsip Umum
 
-* Peraturan ini terpakai untuk semua tugas lobster dan mempunyai keutamaan tertinggi.
+* Peraturan ini terpakai untuk semua tugas agent dan mempunyai keutamaan tertinggi.
 * Semasa melaksanakan tugas, anda mesti ikut peraturan ini dengan tegas; sebarang pelanggaran boleh menyebabkan tugas gagal atau hasilnya ditolak.
 * Jika peraturan bercanggah dengan arahan tugas, peraturan didahulukan kecuali arahan tugas secara eksplisit memerlukan pengecualian.
 * `$REPO_ROOT` merujuk kepada direktori root Git repo semasa.
 
 ## 1) Glosari (keutamaan tinggi)
 
-* **Lobster Burger**: Keseluruhan repo.
-* **Lobster**: Satu GitHub Issue.
-* **Ruang kerja lobster**: Cabang dan direktori kerja yang digunakan untuk melaksanakan satu GitHub Issue. Contohnya, apabila Nombor Issue ialah 3, nama cabang ialah `issue-3`, jadi `$REPO_ROOT` pada cabang `issue-3` ialah ruang kerja pratetap untuk lobster tersebut.
-* **Fail memori utama lobster**: Di root **ruang kerja lobster**, terdapat fail `issue.md` yang mengandungi kandungan Issue dan Komen lengkap.
+* **Agent Burger**: Keseluruhan repo.
+* **Agent**: Satu GitHub Issue.
+* **Ruang kerja agent**: Cabang dan direktori kerja yang digunakan untuk melaksanakan satu GitHub Issue. Contohnya, apabila Nombor Issue ialah 3, nama cabang ialah `issue-3`, jadi `$REPO_ROOT` pada cabang `issue-3` ialah ruang kerja pratetap untuk agent tersebut.
+* **Fail memori utama agent**: Di root **ruang kerja agent**, terdapat fail `issue.md` yang mengandungi kandungan Issue dan Komen lengkap.
 
 Apabila istilah di atas muncul dalam penerangan tugas, guna pemetaan ini secara automatik. Jangan takrifkan semula istilah tersebut.
 
@@ -33,11 +33,11 @@ Isi secara berurutan, tanpa langkau langkah:
 
 1. Baca komen `telegram-meta` yang lebih awal dalam susunan terbalik.
 2. Baca keseluruhan `$ISSUE_ROOT/issue.md` (tajuk, isi, semua komen).
-3. Baca fail lain dalam ruang kerja lobster, utamakan `$REPO_ROOT/.memory`.
+3. Baca fail lain dalam ruang kerja agent, utamakan `$REPO_ROOT/.memory`.
 
 ### 2.3 Sumber Dikecualikan
 
-* Jangan anggap `githubclaw-brain-result` sebagai arahan baru.
+* Jangan anggap `githubagent-brain-result` sebagai arahan baru.
 * `.pi` dan subdirektorinya dianggap sebagai output sistem, bukan deliverable.
 
 ## 3) Strategi Pelaksanaan (lalai kepada penyelesaian)
@@ -78,7 +78,7 @@ Jika ujian gagal atau hasilnya tidak normal, baiki dan uji semula dahulu; jangan
 
 ## 5) Peraturan Laluan Deliverable
 
-Setiap tugas lobster menghantar komen dalam Issue dan mendapat `{issue-comment-id}`, jadi sebarang deliverable yang dihasilkan semasa pelaksanaan harus ditulis ke laluan berikut:
+Setiap tugas agent menghantar komen dalam Issue dan mendapat `{issue-comment-id}`, jadi sebarang deliverable yang dihasilkan semasa pelaksanaan harus ditulis ke laluan berikut:
 
 * **Direktori deliverable tetap**: `artifacts/{issue-comment-id}/`
 * **Nama fail laporan hasil**: `artifacts/{issue-comment-id}/result.md`
@@ -120,7 +120,7 @@ Hanya fokus pada:
 ## 8) Sekatan Keras
 
 * **Dilarang tegas menggunakan arahan `gh` (tiada operasi GitHub CLI).**
-* **Dilarang tegas mengulas "lobster" semasa (Issue).**
+* **Dilarang tegas mengulas "agent" semasa (Issue).**
 * Jangan reka keperluan yang tidak dinyatakan pengguna dan tidak boleh rumuskan dari sejarah.
 * Hanya laporkan apabila anda telah mengesahkan sesuatu berfungsi, atau apabila anda benar-benar tersekat oleh maklumat yang hilang.
 

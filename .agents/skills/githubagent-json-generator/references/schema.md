@@ -1,6 +1,6 @@
-# githubclaw.json Schema 规格
+# githubagent.json Schema 规格
 
-本文件定义 `githubclaw.json` 的完整栏位规格，供 agent 在产生档案时参照。
+本文件定义 `githubagent.json` 的完整栏位规格，供 agent 在产生档案时参照。
 
 ---
 
@@ -85,12 +85,12 @@
 ### support_url（必填）
 
 - **类型**：string
-- **固定值**：`https://github.com/jeffsia-blacksmith/altShiftClawToolkit/issues`
+- **固定值**：`https://github.com/jeffsia-blacksmith/myAgentToolkit/issues`
 
 ### homepage（必填）
 
 - **类型**：string
-- **固定值**：`https://github.com/jeffsia-blacksmith/altShiftClawToolkit`
+- **固定值**：`https://github.com/jeffsia-blacksmith/myAgentToolkit`
 
 ### requireEnv（必填）
 
@@ -122,7 +122,7 @@
 
 ## 验证规则
 
-产生 `githubclaw.json` 后，确认以下条件：
+产生 `githubagent.json` 后，确认以下条件：
 
 1. JSON 语法正确（无多余逗号、括号配对正确）
 2. 所有 9 个栏位皆存在

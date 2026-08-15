@@ -39,20 +39,20 @@ After successful generation, **always** report results in this format:
    `![description](https://github.com/{GITHUB_REPO}/blob/{BRANCH}/{relative_path}?raw=true)`
 3. File metadata: format (`JPEG`/`PNG`), dimensions, file size
 4. **Artifact metadata** block (enables Telegram relay to send the actual photo):
-   `<!-- githubclaw-artifacts: {"images":[{"branch":"{BRANCH}","path":"{relative_path}"}],"html":[]} -->`
+   `<!-- githubagent-artifacts: {"images":[{"branch":"{BRANCH}","path":"{relative_path}"}],"html":[]} -->`
 
 ### Example (single image)
 
-Assuming `GITHUB_REPO=test/baoclaw-5`, `BRANCH=issue-3`, `COMMENT_ID=4153431460`:
+Assuming `GITHUB_REPO=test/baoagent-5`, `BRANCH=issue-3`, `COMMENT_ID=4153431460`:
 
 ```
 ✅ 图片已产出
 
-![一杯抹茶拿铁](https://github.com/test/baoclaw-5/blob/issue-3/artifacts/4153431460/matcha-latte-01.jpg?raw=true)
+![一杯抹茶拿铁](https://github.com/test/baoagent-5/blob/issue-3/artifacts/4153431460/matcha-latte-01.jpg?raw=true)
 
 - 格式：JPEG · 1408×768 · 757 KB
 
-<!-- githubclaw-artifacts: {"images":[{"branch":"issue-3","path":"artifacts/4153431460/matcha-latte-01.jpg"}],"html":[]} -->
+<!-- githubagent-artifacts: {"images":[{"branch":"issue-3","path":"artifacts/4153431460/matcha-latte-01.jpg"}],"html":[]} -->
 ```
 
 ### Example (multiple images)
@@ -60,19 +60,19 @@ Assuming `GITHUB_REPO=test/baoclaw-5`, `BRANCH=issue-3`, `COMMENT_ID=4153431460`
 ```
 ✅ 图片已产出
 
-![图 1](https://github.com/test/baoclaw-5/blob/issue-3/artifacts/4153431460/cute-puppy-01.jpg?raw=true)
-![图 2](https://github.com/test/baoclaw-5/blob/issue-3/artifacts/4153431460/cute-puppy-02.jpg?raw=true)
+![图 1](https://github.com/test/baoagent-5/blob/issue-3/artifacts/4153431460/cute-puppy-01.jpg?raw=true)
+![图 2](https://github.com/test/baoagent-5/blob/issue-3/artifacts/4153431460/cute-puppy-02.jpg?raw=true)
 
 - 图 1：JPEG · 1408×768 · 703 KB
 - 图 2：JPEG · 1408×768 · 512 KB
 
-<!-- githubclaw-artifacts: {"images":[{"branch":"issue-3","path":"artifacts/4153431460/cute-puppy-01.jpg"},{"branch":"issue-3","path":"artifacts/4153431460/cute-puppy-02.jpg"}],"html":[]} -->
+<!-- githubagent-artifacts: {"images":[{"branch":"issue-3","path":"artifacts/4153431460/cute-puppy-01.jpg"},{"branch":"issue-3","path":"artifacts/4153431460/cute-puppy-02.jpg"}],"html":[]} -->
 ```
 
 ### Why this format
 
 - **GitHub Issue comments** require absolute URLs to render images inline (relative paths won't display).
-- **Telegram relay** detects `githubclaw-artifacts` metadata → downloads image via GitHub API → sends as photo.
+- **Telegram relay** detects `githubagent-artifacts` metadata → downloads image via GitHub API → sends as photo.
 - `?raw=true` ensures GitHub serves raw image bytes instead of the HTML file viewer.
 
 ## Execution pattern

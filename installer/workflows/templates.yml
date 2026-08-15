@@ -22,10 +22,10 @@ concurrency:
 
 env:
   TEMPLATE_NAME: "${{ inputs.template_name }}"
-  PUSH_TOKEN: "${{ secrets.CLAW_SYS_GITHUB_TOKEN || github.token }}"
+  PUSH_TOKEN: "${{ secrets.AGENT_SYS_GITHUB_TOKEN || github.token }}"
   AUTOMATION_GIT_USER_NAME: "${{ vars['AUTOMATION_GIT_USER_NAME'] || 'github-actions[bot]' }}"
   AUTOMATION_GIT_USER_EMAIL: "${{ vars['AUTOMATION_GIT_USER_EMAIL'] || 'github-actions[bot]@users.noreply.github.com' }}"
-  TEMPLATES_SOURCE_REPO: "jeffsia-blacksmith/altShiftClawToolkit"
+  TEMPLATES_SOURCE_REPO: "jeffsia-blacksmith/myAgentToolkit"
   REQUEST_ID: "${{ inputs.request_id }}"
 
 jobs:

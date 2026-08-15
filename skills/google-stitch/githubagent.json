@@ -5,7 +5,7 @@
   "category": "content",
   "tags": ["gemini", "ui-design", "html", "mockup", "prototyping"],
   "version": "1.0.0",
-  "support_url": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit/issues",
-  "homepage": "https://github.com/jeffsia-blacksmith/altShiftClawToolkit",
+  "support_url": "https://github.com/jeffsia-blacksmith/myAgentToolkit/issues",
+  "homepage": "https://github.com/jeffsia-blacksmith/myAgentToolkit",
   "requireEnv": ["GEMINI_API_KEY"]
 }

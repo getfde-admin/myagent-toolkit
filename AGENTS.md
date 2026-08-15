@@ -2,8 +2,8 @@
 
 ## Project Structure & Module Organization
 
-- `skills/`: standalone Agent Skills with `SKILL.md`, `README.md`, and `githubclaw.json`; add `scripts/`, `src/`, `references/`, or `assets/` only when needed.
-- `templates/`: reusable agent or system templates, usually with `AGENTS.md` or `SYSTEM.md` plus `githubclaw.json`.
+- `skills/`: standalone Agent Skills with `SKILL.md`, `README.md`, and `githubagent.json`; add `scripts/`, `src/`, `references/`, or `assets/` only when needed.
+- `templates/`: reusable agent or system templates, usually with `AGENTS.md` or `SYSTEM.md` plus `githubagent.json`.
 - `actions/`: composite GitHub Actions and reusable workflow assets. Each action has `action.yml` and `README.md`.
 - `workers/telegram-bot/`: Bun/Node Cloudflare Worker source, tests, scripts, migrations, and deployment config.
 

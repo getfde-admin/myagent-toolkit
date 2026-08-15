@@ -4,7 +4,7 @@ const POLL_INTERVAL_MS = 5000;
 const MAX_POLL_TIME_MS = 1800000; // 30 minutes
 
 function buildPrompt(topic) {
-  const code = process.env.CLAW_LANGUAGE || "en";
+  const code = process.env.AGENT_LANGUAGE || "en";
   const map = {
     "zh-CN": "Simplified Chinese",
     "en": "English"

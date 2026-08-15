@@ -1,4 +1,4 @@
-name: 🦞 Lobster Burger Core Update
+name: 🤖 Agent Burger Core Update
 
 on:
   schedule:
@@ -19,14 +19,14 @@ on:
         default: ""
 
 run-name: >-
-  🦞 Lobster Burger Core Update: ${{ github.repository }}${{ github.event_name == 'workflow_dispatch' && inputs.request_id != '' && format(' | req:{0}', inputs.request_id) || '' }}
+  🤖 Agent Burger Core Update: ${{ github.repository }}${{ github.event_name == 'workflow_dispatch' && inputs.request_id != '' && format(' | req:{0}', inputs.request_id) || '' }}
 
 concurrency:
   group: auto-update-${{ github.repository }}
   cancel-in-progress: false
 
 env:
-  PACKAGE_MANIFEST_URL: https://jeffsia-blacksmith.github.io/altShiftClawCore/github-claw-worker-package.json
+  PACKAGE_MANIFEST_URL: https://jeffsia-blacksmith.github.io/myAgentCore/github-agent-worker-package.json
 
 permissions:
   contents: write
@@ -104,7 +104,7 @@ jobs:
           STORED_VERSION: ${{ vars.LOBSTER_BURGER_PACKAGE_VERSION }}
           STORED_REVISION: ${{ vars.LOBSTER_BURGER_PACKAGE_REVISION }}
         run: |
-          echo "### 🦞 Auto Update Result" >> "$GITHUB_STEP_SUMMARY"
+          echo "### 🤖 Auto Update Result" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "**Version unchanged, skipping this update.**" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
@@ -120,7 +120,7 @@ jobs:
     name: Trigger deploy
     needs: check-version
     if: needs.check-version.outputs.should_update == 'true'
-    uses: ./.github/workflows/deploy-lobster-burger.yml
+    uses: ./.github/workflows/deploy-myagent.yml
     secrets: inherit
 
   update-state:
@@ -132,7 +132,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     env:
-      GH_TOKEN: ${{ secrets.CLAW_SYS_GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.AGENT_SYS_GITHUB_TOKEN }}
       REMOTE_VERSION: ${{ needs.check-version.outputs.remote_version }}
       REMOTE_REVISION: ${{ needs.check-version.outputs.remote_revision }}
     steps:
@@ -156,7 +156,7 @@ jobs:
 
       - name: Summary
         run: |
-          echo "### 🦞 Auto Update Result" >> "$GITHUB_STEP_SUMMARY"
+          echo "### 🤖 Auto Update Result" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "**Version comparison and deployment completed.**" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"

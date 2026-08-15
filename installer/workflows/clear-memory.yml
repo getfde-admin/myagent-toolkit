@@ -1,4 +1,4 @@
-name: 🧹 Clear Lobster Memory
+name: 🧹 Clear Agent Memory
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ on:
         required: true
         type: string
 
-run-name: "🧹 Clear Lobster Memory #${{ inputs.active_issue }}"
+run-name: "🧹 Clear Agent Memory #${{ inputs.active_issue }}"
 
 concurrency:
   group: clear-memory-${{ github.repository }}-${{ inputs.active_issue }}
@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   clear-memory:
-    name: 🧹 Clear Lobster Memory
+    name: 🧹 Clear Agent Memory
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -32,7 +32,7 @@ jobs:
         with:
           ref: ${{ env.TARGET_BRANCH }}
           fetch-depth: 0
-          token: ${{ secrets.CLAW_SYS_GITHUB_TOKEN || github.token }}
+          token: ${{ secrets.AGENT_SYS_GITHUB_TOKEN || github.token }}
 
       - name: Clear Copilot and Codex memory files
         run: |
@@ -87,7 +87,7 @@ jobs:
         if: always()
         run: |
           {
-            echo "### 🧹 Clear Lobster Memory"
+            echo "### 🧹 Clear Agent Memory"
             echo
             echo "| Field | Value |"
             echo "| --- | --- |"

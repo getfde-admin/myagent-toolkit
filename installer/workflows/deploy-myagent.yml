@@ -1,12 +1,12 @@
-name: ⚒️ Deploy Lobster Burger
+name: ⚒️ Deploy Agent Burger
 
 on:
   workflow_call:
     inputs:
       profile_name: { required: false, type: string, default: "" }
       personality: { required: false, type: string, default: "" }
-      claw_language: { required: false, type: string, default: "" }
-      claw_sys_github_token: { required: false, type: string, default: "" }
+      agent_language: { required: false, type: string, default: "" }
+      agent_sys_github_token: { required: false, type: string, default: "" }
       github_webhook_secret: { required: false, type: string, default: "" }
       cloudflare_api_token: { required: false, type: string, default: "" }
       cloudflare_account_id: { required: false, type: string, default: "" }
@@ -18,7 +18,7 @@ on:
       gemini_api_key: { required: false, type: string, default: "" }
       felo_api_key: { required: false, type: string, default: "" }
       debug_mode: { required: false, type: string, default: "false" }
-      init_github_claw: { required: false, type: string, default: "true" }
+      init_github_agent: { required: false, type: string, default: "true" }
   # GitHub caps workflow_dispatch at 10 defined inputs (see actions/runner#1425),
   # so all fields are bundled into a single JSON payload string here instead of
   # one input per field. workflow_call above is unaffected by that cap and keeps
@@ -28,19 +28,19 @@ on:
     inputs:
       payload_json:
         description: >-
-          JSON object with: profile_name, personality, claw_language,
-          claw_sys_github_token, github_webhook_secret,
+          JSON object with: profile_name, personality, agent_language,
+          agent_sys_github_token, github_webhook_secret,
           cloudflare_api_token, cloudflare_account_id, telegram_bot_token,
           telegram_webhook_secret, telegram_chat_id, telegram_allowed_chat_id,
           telegram_allowed_from_id, gemini_api_key, felo_api_key, debug_mode,
-          init_github_claw
+          init_github_agent
         required: true
         type: string
 
-run-name: "⚒️ Deploy Lobster Burger"
+run-name: "⚒️ Deploy Agent Burger"
 
 concurrency:
-  group: deploy-lobster-burger-${{ github.repository }}
+  group: deploy-myagent-${{ github.repository }}
   cancel-in-progress: false
 
 permissions:
@@ -48,7 +48,7 @@ permissions:
 
 jobs:
   deploy:
-    name: ⚒️ Deploy Lobster Burger
+    name: ⚒️ Deploy Agent Burger
     runs-on: ubuntu-latest
     timeout-minutes: 30
     defaults:
@@ -77,8 +77,8 @@ jobs:
           PAYLOAD_JSON: ${{ github.event_name == 'workflow_dispatch' && inputs.payload_json || '' }}
           WC_PROFILE_NAME: ${{ inputs.profile_name }}
           WC_PERSONALITY: ${{ inputs.personality }}
-          WC_CLAW_LANGUAGE: ${{ inputs.claw_language }}
-          WC_CLAW_SYS_GITHUB_TOKEN: ${{ inputs.claw_sys_github_token }}
+          WC_AGENT_LANGUAGE: ${{ inputs.agent_language }}
+          WC_AGENT_SYS_GITHUB_TOKEN: ${{ inputs.agent_sys_github_token }}
           WC_GITHUB_WEBHOOK_SECRET: ${{ inputs.github_webhook_secret }}
           WC_CLOUDFLARE_API_TOKEN: ${{ inputs.cloudflare_api_token }}
           WC_CLOUDFLARE_ACCOUNT_ID: ${{ inputs.cloudflare_account_id }}
@@ -90,8 +90,8 @@ jobs:
           WC_GEMINI_API_KEY: ${{ inputs.gemini_api_key }}
           WC_FELO_API_KEY: ${{ inputs.felo_api_key }}
           WC_DEBUG_MODE: ${{ inputs.debug_mode }}
-          WC_INIT_GITHUB_CLAW: ${{ inputs.init_github_claw }}
-          SECRET_CLAW_SYS_GITHUB_TOKEN: ${{ secrets.CLAW_SYS_GITHUB_TOKEN }}
+          WC_INIT_GITHUB_AGENT: ${{ inputs.init_github_agent }}
+          SECRET_AGENT_SYS_GITHUB_TOKEN: ${{ secrets.AGENT_SYS_GITHUB_TOKEN }}
           SECRET_GH_WEBHOOK_SECRET: ${{ secrets.GH_WEBHOOK_SECRET }}
           SECRET_CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           SECRET_CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -104,9 +104,9 @@ jobs:
           SECRET_FELO_API_KEY: ${{ secrets.FELO_API_KEY }}
           VAR_PROFILE_NAME: ${{ vars.PROFILE_NAME }}
           VAR_PERSONALITY: ${{ vars.PERSONALITY }}
-          VAR_CLAW_LANGUAGE: ${{ vars.CLAW_LANGUAGE }}
+          VAR_AGENT_LANGUAGE: ${{ vars.AGENT_LANGUAGE }}
           VAR_DEBUG_MODE: ${{ vars.DEBUG_MODE }}
-          VAR_INIT_GITHUB_CLAW: ${{ vars.INIT_GITHUB_CLAW }}
+          VAR_INIT_GITHUB_AGENT: ${{ vars.INIT_GITHUB_AGENT }}
         run: |
           set -euo pipefail
 
@@ -114,8 +114,8 @@ jobs:
             json_get() { jq -r --arg k "$1" '.[$k] // empty' <<<"${PAYLOAD_JSON}"; }
             profile_name="$(json_get profile_name)"
             personality="$(json_get personality)"
-            claw_language="$(json_get claw_language)"
-            claw_sys_github_token="$(json_get claw_sys_github_token)"
+            agent_language="$(json_get agent_language)"
+            agent_sys_github_token="$(json_get agent_sys_github_token)"
             github_webhook_secret="$(json_get github_webhook_secret)"
             cloudflare_api_token="$(json_get cloudflare_api_token)"
             cloudflare_account_id="$(json_get cloudflare_account_id)"
@@ -127,12 +127,12 @@ jobs:
             gemini_api_key="$(json_get gemini_api_key)"
             felo_api_key="$(json_get felo_api_key)"
             debug_mode="$(json_get debug_mode)"
-            init_github_claw="$(json_get init_github_claw)"
+            init_github_agent="$(json_get init_github_agent)"
           else
             profile_name="${WC_PROFILE_NAME:-}"
             personality="${WC_PERSONALITY:-}"
-            claw_language="${WC_CLAW_LANGUAGE:-}"
-            claw_sys_github_token="${WC_CLAW_SYS_GITHUB_TOKEN:-}"
+            agent_language="${WC_AGENT_LANGUAGE:-}"
+            agent_sys_github_token="${WC_AGENT_SYS_GITHUB_TOKEN:-}"
             github_webhook_secret="${WC_GITHUB_WEBHOOK_SECRET:-}"
             cloudflare_api_token="${WC_CLOUDFLARE_API_TOKEN:-}"
             cloudflare_account_id="${WC_CLOUDFLARE_ACCOUNT_ID:-}"
@@ -144,17 +144,17 @@ jobs:
             gemini_api_key="${WC_GEMINI_API_KEY:-}"
             felo_api_key="${WC_FELO_API_KEY:-}"
             debug_mode="${WC_DEBUG_MODE:-}"
-            init_github_claw="${WC_INIT_GITHUB_CLAW:-}"
+            init_github_agent="${WC_INIT_GITHUB_AGENT:-}"
           fi
 
           # explicit input > stored repo secret/var > default
-          claw_sys_github_token="${claw_sys_github_token:-$SECRET_CLAW_SYS_GITHUB_TOKEN}"
+          agent_sys_github_token="${agent_sys_github_token:-$SECRET_AGENT_SYS_GITHUB_TOKEN}"
           github_webhook_secret="${github_webhook_secret:-$SECRET_GH_WEBHOOK_SECRET}"
           cloudflare_api_token="${cloudflare_api_token:-$SECRET_CLOUDFLARE_API_TOKEN}"
           cloudflare_account_id="${cloudflare_account_id:-$SECRET_CLOUDFLARE_ACCOUNT_ID}"
           profile_name="${profile_name:-$VAR_PROFILE_NAME}"
           personality="${personality:-$VAR_PERSONALITY}"
-          claw_language="${claw_language:-${VAR_CLAW_LANGUAGE:-en}}"
+          agent_language="${agent_language:-${VAR_AGENT_LANGUAGE:-en}}"
           telegram_bot_token="${telegram_bot_token:-$SECRET_TELEGRAM_BOT_TOKEN}"
           telegram_webhook_secret="${telegram_webhook_secret:-$SECRET_TELEGRAM_WEBHOOK_SECRET}"
           telegram_chat_id="${telegram_chat_id:-$SECRET_TELEGRAM_CHAT_ID}"
@@ -163,11 +163,11 @@ jobs:
           gemini_api_key="${gemini_api_key:-$SECRET_GEMINI_API_KEY}"
           felo_api_key="${felo_api_key:-$SECRET_FELO_API_KEY}"
           debug_mode="${debug_mode:-${VAR_DEBUG_MODE:-false}}"
-          init_github_claw="${init_github_claw:-${VAR_INIT_GITHUB_CLAW:-true}}"
+          init_github_agent="${init_github_agent:-${VAR_INIT_GITHUB_AGENT:-true}}"
           [[ "$debug_mode" == "true" ]] && debug_mode=true || debug_mode=false
-          [[ "$init_github_claw" == "true" ]] && init_github_claw=true || init_github_claw=false
+          [[ "$init_github_agent" == "true" ]] && init_github_agent=true || init_github_agent=false
 
-          for v in "$claw_sys_github_token" "$github_webhook_secret" \
+          for v in "$agent_sys_github_token" "$github_webhook_secret" \
                    "$cloudflare_api_token" "$telegram_bot_token" "$telegram_webhook_secret" \
                    "$gemini_api_key" "$felo_api_key"; do
             [[ -n "$v" ]] && echo "::add-mask::$v"
@@ -180,13 +180,13 @@ jobs:
             echo "__ENV_EOF__" >> "$GITHUB_ENV"
           }
 
-          write_env TF_VAR_claw_sys_github_token "$claw_sys_github_token"
+          write_env TF_VAR_agent_sys_github_token "$agent_sys_github_token"
           write_env TF_VAR_github_webhook_secret "$github_webhook_secret"
           write_env TF_VAR_cloudflare_api_token "$cloudflare_api_token"
           write_env TF_VAR_cloudflare_account_id "$cloudflare_account_id"
           write_env TF_VAR_profile_name "$profile_name"
           write_env TF_VAR_personality "$personality"
-          write_env TF_VAR_claw_language "$claw_language"
+          write_env TF_VAR_agent_language "$agent_language"
           write_env TF_VAR_telegram_bot_token "$telegram_bot_token"
           write_env TF_VAR_telegram_webhook_secret "$telegram_webhook_secret"
           write_env TF_VAR_telegram_chat_id "$telegram_chat_id"
@@ -195,51 +195,51 @@ jobs:
           write_env TF_VAR_gemini_api_key "$gemini_api_key"
           write_env TF_VAR_felo_api_key "$felo_api_key"
           write_env TF_VAR_debug_mode "$debug_mode"
-          write_env TF_VAR_init_github_claw "$init_github_claw"
+          write_env TF_VAR_init_github_agent "$init_github_agent"
 
       - name: Fetch and unpack remote worker package
         run: |
           set -euo pipefail
 
           curl --fail --show-error --silent --location \
-            "https://jeffsia-blacksmith.github.io/altShiftClawCore/github-claw-worker-package.zip" \
-            --output "${RUNNER_TEMP}/github-claw-worker-package.zip"
+            "https://jeffsia-blacksmith.github.io/myAgentCore/github-agent-worker-package.zip" \
+            --output "${RUNNER_TEMP}/github-agent-worker-package.zip"
 
-          rm -rf "${RUNNER_TEMP}/github-claw-worker-package"
+          rm -rf "${RUNNER_TEMP}/github-agent-worker-package"
           mkdir -p \
-            "${RUNNER_TEMP}/github-claw-worker-package" \
+            "${RUNNER_TEMP}/github-agent-worker-package" \
             "${GITHUB_WORKSPACE}/Terraform" \
             "${GITHUB_WORKSPACE}/.github/workflows" \
-            "${GITHUB_WORKSPACE}/GitHubClawCore" \
+            "${GITHUB_WORKSPACE}/GitHubAgentCore" \
             "${GITHUB_WORKSPACE}/templates"
 
           unzip -q \
-            "${RUNNER_TEMP}/github-claw-worker-package.zip" \
-            -d "${RUNNER_TEMP}/github-claw-worker-package"
+            "${RUNNER_TEMP}/github-agent-worker-package.zip" \
+            -d "${RUNNER_TEMP}/github-agent-worker-package"
 
-          # The altShiftClawCore package only contains GitHubClawCore/ and Terraform/ (not actions/);
+          # The myAgentCore package only contains GitHubAgentCore/ and Terraform/ (not actions/);
           # only copy actions/ if the package adds it in the future, to avoid errors when it does not exist.
-          if [ -d "${RUNNER_TEMP}/github-claw-worker-package/actions" ]; then
+          if [ -d "${RUNNER_TEMP}/github-agent-worker-package/actions" ]; then
             cp -R \
-              "${RUNNER_TEMP}/github-claw-worker-package/actions/." \
+              "${RUNNER_TEMP}/github-agent-worker-package/actions/." \
               "${GITHUB_WORKSPACE}/.github/workflows/"
           fi
           cp -R \
-            "${RUNNER_TEMP}/github-claw-worker-package/Terraform/." \
+            "${RUNNER_TEMP}/github-agent-worker-package/Terraform/." \
             "${GITHUB_WORKSPACE}/Terraform/"
           cp -R \
-            "${RUNNER_TEMP}/github-claw-worker-package/GitHubClawCore/migrations" \
-            "${GITHUB_WORKSPACE}/GitHubClawCore/"
+            "${RUNNER_TEMP}/github-agent-worker-package/GitHubAgentCore/migrations" \
+            "${GITHUB_WORKSPACE}/GitHubAgentCore/"
           cp \
-            "${RUNNER_TEMP}/github-claw-worker-package/GitHubClawCore/index.js" \
+            "${RUNNER_TEMP}/github-agent-worker-package/GitHubAgentCore/index.js" \
             "${GITHUB_WORKSPACE}/index.js"
 
-      - name: Sync installed templates from altShiftClawToolkit
+      - name: Sync installed templates from myAgentToolkit
         run: |
           set -euo pipefail
 
-          TOOLKIT_REPO="https://github.com/jeffsia-blacksmith/altShiftClawToolkit.git"
-          TOOLKIT_DIR="${RUNNER_TEMP}/altShiftClawToolkit"
+          TOOLKIT_REPO="https://github.com/jeffsia-blacksmith/myAgentToolkit.git"
+          TOOLKIT_DIR="${RUNNER_TEMP}/myAgentToolkit"
           LOCAL_TEMPLATE_DIR="${GITHUB_WORKSPACE}/templates"
           # Single source of truth: installer/templates (same source as AdminPage seed, avoiding a fork between templates/ and installer/templates)
           TOOLKIT_TEMPLATE_SRC="${TOOLKIT_DIR}/installer/templates"
@@ -251,14 +251,14 @@ jobs:
           )
 
           if [[ "${#INSTALLED_TEMPLATES[@]}" -eq 0 ]]; then
-            echo "No installed templates/* detected, skipping altShiftClawToolkit sync."
+            echo "No installed templates/* detected, skipping myAgentToolkit sync."
             exit 0
           fi
 
           git clone --depth 1 "$TOOLKIT_REPO" "$TOOLKIT_DIR"
 
           if [[ ! -d "${TOOLKIT_TEMPLATE_SRC}" ]]; then
-            echo "::error::altShiftClawToolkit is missing installer/templates"
+            echo "::error::myAgentToolkit is missing installer/templates"
             exit 1
           fi
 
@@ -287,7 +287,7 @@ jobs:
           done
 
           {
-            echo "### Template Sync Result (altShiftClawToolkit)"
+            echo "### Template Sync Result (myAgentToolkit)"
             echo ""
             if (( ${#updated_templates[@]} > 0 )); then
               echo "#### Updated templates"
@@ -314,7 +314,7 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin "https://x-access-token:${TF_VAR_claw_sys_github_token}@github.com/${GITHUB_REPOSITORY}.git"
+          git remote set-url origin "https://x-access-token:${TF_VAR_agent_sys_github_token}@github.com/${GITHUB_REPOSITORY}.git"
 
           git add .github/workflows templates
           if git diff --cached --quiet; then
@@ -322,20 +322,20 @@ jobs:
             exit 0
           fi
 
-          git commit -m "chore: sync lobster burger package"
+          git commit -m "chore: sync agent burger package"
           git push origin HEAD:main
 
       - name: Sync GitHub settings
         env:
-          GH_TOKEN: ${{ env.TF_VAR_claw_sys_github_token }}
+          GH_TOKEN: ${{ env.TF_VAR_agent_sys_github_token }}
           PROFILE_NAME: ${{ env.TF_VAR_profile_name }}
           PERSONALITY: ${{ env.TF_VAR_personality }}
-          CLAW_LANGUAGE: ${{ env.TF_VAR_claw_language }}
+          AGENT_LANGUAGE: ${{ env.TF_VAR_agent_language }}
           DEBUG_MODE: ${{ env.TF_VAR_debug_mode }}
-          INIT_GITHUB_CLAW: ${{ env.TF_VAR_init_github_claw }}
+          INIT_GITHUB_AGENT: ${{ env.TF_VAR_init_github_agent }}
           CLOUDFLARE_API_TOKEN: ${{ env.TF_VAR_cloudflare_api_token }}
           CLOUDFLARE_ACCOUNT_ID: ${{ env.TF_VAR_cloudflare_account_id }}
-          CLAW_SYS_GITHUB_TOKEN: ${{ env.TF_VAR_claw_sys_github_token }}
+          AGENT_SYS_GITHUB_TOKEN: ${{ env.TF_VAR_agent_sys_github_token }}
           GH_WEBHOOK_SECRET: ${{ env.TF_VAR_github_webhook_secret }}
           TELEGRAM_BOT_TOKEN: ${{ env.TF_VAR_telegram_bot_token }}
           TELEGRAM_WEBHOOK_SECRET: ${{ env.TF_VAR_telegram_webhook_secret }}
@@ -358,14 +358,14 @@ jobs:
 
           set_var_if_nonempty PROFILE_NAME "${PROFILE_NAME}"
           set_var_if_nonempty PERSONALITY "${PERSONALITY}"
-          set_var_if_nonempty CLAW_LANGUAGE "${CLAW_LANGUAGE}"
+          set_var_if_nonempty AGENT_LANGUAGE "${AGENT_LANGUAGE}"
           set_var_if_nonempty DEBUG_MODE "${DEBUG_MODE}"
-          set_var_if_nonempty INIT_GITHUB_CLAW "${INIT_GITHUB_CLAW}"
+          set_var_if_nonempty INIT_GITHUB_AGENT "${INIT_GITHUB_AGENT}"
 
           for secret_name in \
             CLOUDFLARE_API_TOKEN \
             CLOUDFLARE_ACCOUNT_ID \
-            CLAW_SYS_GITHUB_TOKEN \
+            AGENT_SYS_GITHUB_TOKEN \
             GH_WEBHOOK_SECRET \
             TELEGRAM_BOT_TOKEN \
             TELEGRAM_WEBHOOK_SECRET \
@@ -428,7 +428,7 @@ jobs:
         env:
           STORED_WORKER_NAME: ${{ vars.WORKER_NAME }}
           STORED_WORKER_URL: ${{ vars.WORKER_URL }}
-          STORED_GITHUBCLAW_WORKER_URL: ${{ vars.GITHUBCLAW_WORKER_URL }}
+          STORED_GITHUBAGENT_WORKER_URL: ${{ vars.GITHUBAGENT_WORKER_URL }}
         run: |
           set -euo pipefail
 
@@ -447,7 +447,7 @@ jobs:
               "${TF_VAR_github_repo}" \
               "${STORED_WORKER_NAME}" \
               "${STORED_WORKER_URL}" \
-              "${STORED_GITHUBCLAW_WORKER_URL}"
+              "${STORED_GITHUBAGENT_WORKER_URL}"
           )"; then
             echo "✅ Detected existing Worker: ${matched_worker_name}"
           else
@@ -469,26 +469,26 @@ jobs:
         working-directory: Terraform
         env:
           TF_VAR_workers_dev_subdomain: ${{ steps.workers_subdomain.outputs.subdomain }}
-          TF_VAR_github_claw_worker_name_override: ${{ steps.worker_reconciliation.outputs.worker_name_override }}
+          TF_VAR_github_agent_worker_name_override: ${{ steps.worker_reconciliation.outputs.worker_name_override }}
         run: |
           set -euo pipefail
 
           terraform import \
-            cloudflare_worker.github_claw \
-            "${TF_VAR_cloudflare_account_id}/${TF_VAR_github_claw_worker_name_override}"
+            cloudflare_worker.github_agent \
+            "${TF_VAR_cloudflare_account_id}/${TF_VAR_github_agent_worker_name_override}"
 
       - name: Terraform plan
         working-directory: Terraform
         env:
           TF_VAR_workers_dev_subdomain: ${{ steps.workers_subdomain.outputs.subdomain }}
-          TF_VAR_github_claw_worker_name_override: ${{ steps.worker_reconciliation.outputs.worker_name_override }}
+          TF_VAR_github_agent_worker_name_override: ${{ steps.worker_reconciliation.outputs.worker_name_override }}
         run: terraform plan -out=tfplan
 
       - name: Terraform apply
         working-directory: Terraform
         env:
           TF_VAR_workers_dev_subdomain: ${{ steps.workers_subdomain.outputs.subdomain }}
-          TF_VAR_github_claw_worker_name_override: ${{ steps.worker_reconciliation.outputs.worker_name_override }}
+          TF_VAR_github_agent_worker_name_override: ${{ steps.worker_reconciliation.outputs.worker_name_override }}
         run: terraform apply -auto-approve tfplan
 
       - name: Read Terraform outputs
@@ -496,11 +496,11 @@ jobs:
         working-directory: Terraform
         env:
           TF_VAR_workers_dev_subdomain: ${{ steps.workers_subdomain.outputs.subdomain }}
-          TF_VAR_github_claw_worker_name_override: ${{ steps.worker_reconciliation.outputs.worker_name_override }}
+          TF_VAR_github_agent_worker_name_override: ${{ steps.worker_reconciliation.outputs.worker_name_override }}
         run: |
           set -euo pipefail
-          echo "worker_name=$(terraform output -raw github_claw_worker_script_name)" >> "$GITHUB_OUTPUT"
-          echo "worker_url=$(terraform output -raw github_claw_worker_url)" >> "$GITHUB_OUTPUT"
+          echo "worker_name=$(terraform output -raw github_agent_worker_script_name)" >> "$GITHUB_OUTPUT"
+          echo "worker_url=$(terraform output -raw github_agent_worker_url)" >> "$GITHUB_OUTPUT"
           echo "schedules_db_name=$(terraform output -raw schedules_db_name)" >> "$GITHUB_OUTPUT"
           echo "schedules_db_uuid=$(terraform output -raw schedules_db_uuid)" >> "$GITHUB_OUTPUT"
 
@@ -511,26 +511,26 @@ jobs:
         run: |
           set -euo pipefail
           {
-            printf 'name = "githubclaw-migrations"\n'
+            printf 'name = "githubagent-migrations"\n'
             printf 'main = "dist/index.js"\n'
             printf 'compatibility_date = "2026-03-09"\n\n'
             printf '[[d1_databases]]\n'
             printf 'binding = "SCHEDULES_DB"\n'
             printf 'database_name = "%s"\n' "${SCHEDULES_DB_NAME}"
             printf 'database_id = "%s"\n' "${SCHEDULES_DB_UUID}"
-          } > "${GITHUB_WORKSPACE}/GitHubClawCore/wrangler.migrations.toml"
+          } > "${GITHUB_WORKSPACE}/GitHubAgentCore/wrangler.migrations.toml"
 
       - name: Apply D1 migrations
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ env.TF_VAR_cloudflare_api_token }}
           accountId: ${{ env.TF_VAR_cloudflare_account_id }}
-          workingDirectory: GitHubClawCore
+          workingDirectory: GitHubAgentCore
           command: d1 migrations apply SCHEDULES_DB --remote --config wrangler.migrations.toml
 
-      - name: Sync GitHubClaw Worker metadata variables
+      - name: Sync GitHubAgent Worker metadata variables
         env:
-          GH_TOKEN: ${{ env.TF_VAR_claw_sys_github_token }}
+          GH_TOKEN: ${{ env.TF_VAR_agent_sys_github_token }}
           WORKER_NAME: ${{ steps.tf_outputs.outputs.worker_name }}
           WORKER_URL: ${{ steps.tf_outputs.outputs.worker_url }}
           WORKERS_SUBDOMAIN: ${{ steps.workers_subdomain.outputs.subdomain }}
@@ -546,7 +546,7 @@ jobs:
           set_var_if_nonempty WORKER_NAME "${WORKER_NAME}"
           set_var_if_nonempty WORKERS_SUBDOMAIN "${WORKERS_SUBDOMAIN}"
           set_var_if_nonempty WORKER_URL "${WORKER_URL}"
-          set_var_if_nonempty GITHUBCLAW_WORKER_URL "${WORKER_URL}"
+          set_var_if_nonempty GITHUBAGENT_WORKER_URL "${WORKER_URL}"
 
       - name: Wait for Worker health check
         env:
@@ -561,7 +561,7 @@ jobs:
           for i in $(seq 1 $MAX_RETRIES); do
             response=""
             if response="$(curl --fail-with-body --show-error --silent --max-time 10 "${WORKER_ENDPOINT}")"; then
-              if jq -e '.ok == true and .service == "githubclaw-core"' <<<"${response}" >/dev/null 2>&1; then
+              if jq -e '.ok == true and .service == "githubagent-core"' <<<"${response}" >/dev/null 2>&1; then
                 echo "✅ Worker health check passed, took about $(( (i - 1) * RETRY_INTERVAL )) seconds"
                 exit 0
               fi
@@ -611,7 +611,7 @@ jobs:
           schedules_db_uuid="${SCHEDULES_DB_UUID:-"-"}"
 
           {
-            echo "### Deploy Lobster Burger"
+            echo "### Deploy Agent Burger"
             echo
             echo "| Field | Value |"
             echo "| --- | --- |"

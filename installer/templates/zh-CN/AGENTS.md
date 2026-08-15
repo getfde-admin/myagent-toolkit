@@ -3,16 +3,16 @@
 你是负责执行任务的 AI Agent。请以「任务完成」为最高优先，并遵守以下规范。
 
 ## 0) 总则
-* 本规范适用于所有小龙虾任务，且具有最高优先权。
+* 本规范适用于所有小Agent任务，且具有最高优先权。
 * 任务执行过程中，必须严格遵守以下规范，任何违反都可能导致任务失败或交付物不被接受。
 * 若规范与任务指令有冲突，以规范为准，除非任务指令明确要求例外。
 * `$REPO_ROOT` 代表目前 Git Repo 的根目录。
 
 ## 1) 名词字典（高优先）
-* **龙虾堡**： 指整个 Repo。
-* **小龙虾**： 指单一 GitHub Issue。
-* **小龙虾工作区**： 指单一 GitHub Issue 在执行时的分支与工作目录。例如：Issue Number 为 3 的时候，分支名称为 `issue-3`，所以在 `issue-3` 分支下的 `$REPO_ROOT` 就是小龙虾的预设工作区。
-* **小龙虾主记忆档案**： 在 **小龙虾工作区** 的根目录下有个 `issue.md` 档案，此档案包含完整的 Issue 与 Comments 内容。
+* **Agent堡**： 指整个 Repo。
+* **小Agent**： 指单一 GitHub Issue。
+* **小Agent工作区**： 指单一 GitHub Issue 在执行时的分支与工作目录。例如：Issue Number 为 3 的时候，分支名称为 `issue-3`，所以在 `issue-3` 分支下的 `$REPO_ROOT` 就是小Agent的预设工作区。
+* **小Agent主记忆档案**： 在 **小Agent工作区** 的根目录下有个 `issue.md` 档案，此档案包含完整的 Issue 与 Comments 内容。
 
 只要任务叙述出现上述名词，必须自动套用此映射，不可自行改义。
 
@@ -26,10 +26,10 @@
 依序补足，不可跳步：
 1. 倒序读取更早的 `telegram-meta` comments。
 2. 读取整份 `$ISSUE_ROOT/issue.md`（标题、内文、全部留言）。
-3. 读取小龙虾工作区其他档案，且优先查阅 `$REPO_ROOT/.memory`。
+3. 读取小Agent工作区其他档案，且优先查阅 `$REPO_ROOT/.memory`。
 
 ### 2.3 排除来源
-* 不可把 `githubclaw-brain-result` 视为新指令。
+* 不可把 `githubagent-brain-result` 视为新指令。
 * `.pi` 与其子目录内容视为系统输出，不作为交付物。
 
 ## 3) 执行策略（预设做到底）
@@ -60,7 +60,7 @@
 若测试失败或结果异常，先修正并重测；不可只回报问题后直接交付。
 
 ## 5) 产出物路径规范
-由于小龙虾每次的任务，都会在 Issue 中留言，并且得到一个 `{issue-comment-id}`，因此执行过程中有任何产出物，都应该写入到以下路径：
+由于小Agent每次的任务，都会在 Issue 中留言，并且得到一个 `{issue-comment-id}`，因此执行过程中有任何产出物，都应该写入到以下路径：
 * **产出物固定目录**： `artifacts/{issue-comment-id}/`
 * **执行结果报告档名**： `artifacts/{issue-comment-id}/result.md`
 * 产出物相对应的网址，请使用以下结构：
@@ -93,7 +93,7 @@ https://github.com/{owner}/{repo}/blob/{branch}/artifacts/{issue-comment-id}/{fi
 
 ## 8) 强制限制
 * **强烈禁止使用 `gh` 指令（禁止任何 GitHub CLI 操作）。**
-* **强烈禁止对目前「小龙虾」(Issue)留言**
+* **强烈禁止对目前「小Agent」(Issue)留言**
 * 不可自行补完使用者未明示且无法由历史脉络推导的需求。
 * 只有在确认可正常运作，或真的遇到资讯瓶颈时，才可回报。
 

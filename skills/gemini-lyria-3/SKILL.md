@@ -55,7 +55,7 @@ node .agents/skills/gemini-lyria-3/scripts/generate-track.js
 
 - [track-0.mp3](https://github.com/{GITHUB_REPO}/blob/{BRANCH}/{path}?raw=true)
 
-<!-- githubclaw-artifacts: {"audio":[{"branch":"{BRANCH}","path":"{path}"}],"html":[]} -->
+<!-- githubagent-artifacts: {"audio":[{"branch":"{BRANCH}","path":"{path}"}],"html":[]} -->
 ```
 
 ## Instructions for the Agent
@@ -71,7 +71,7 @@ node .agents/skills/gemini-lyria-3/scripts/generate-track.js
    PROMPT_FILE="./lyrics.txt" ISSUE_DIR="artifacts/${COMMENT_ID:-music-output}" node .agents/skills/gemini-lyria-3/scripts/generate-track.js
    ```
 6. 解析 stdout 中 `Saved: <path>` 行取得生成的音轨路径。
-7. 以 Markdown 连结格式回报每个音轨，加上 `githubclaw-artifacts` metadata 供 Telegram relay 使用。
+7. 以 Markdown 连结格式回报每个音轨，加上 `githubagent-artifacts` metadata 供 Telegram relay 使用。
 8. 若 exit code 非 0，检查 stderr 错误讯息，不要自行编造结果。
 
 ## 错误处理

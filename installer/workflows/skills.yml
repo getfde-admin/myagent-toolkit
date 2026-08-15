@@ -1,4 +1,4 @@
-# Skill installation workflow: installs a skill from jeffsia-blacksmith/altShiftClawToolkit to the workspace of the specified issue.
+# Skill installation workflow: installs a skill from jeffsia-blacksmith/myAgentToolkit to the workspace of the specified issue.
 # Makes two commits: one on the issue-N branch (skill files), one on main (workflow YAML env vars).
 name: '🔧 Install Skill'
 run-name: "Skill install: ${{ inputs.skill_name }} | req:${{ inputs.request_id }}"
@@ -32,10 +32,10 @@ concurrency:
 env:
   SKILL_NAME: "${{ inputs.skill_name }}"
   ISSUE_NUMBER: "${{ inputs.issue_number }}"
-  PUSH_TOKEN: "${{ secrets.CLAW_SYS_GITHUB_TOKEN || github.token }}"
+  PUSH_TOKEN: "${{ secrets.AGENT_SYS_GITHUB_TOKEN || github.token }}"
   AUTOMATION_GIT_USER_NAME: "${{ vars['AUTOMATION_GIT_USER_NAME'] || 'github-actions[bot]' }}"
   AUTOMATION_GIT_USER_EMAIL: "${{ vars['AUTOMATION_GIT_USER_EMAIL'] || 'github-actions[bot]@users.noreply.github.com' }}"
-  SKILLS_SOURCE_REPO: "jeffsia-blacksmith/altShiftClawToolkit"
+  SKILLS_SOURCE_REPO: "jeffsia-blacksmith/myAgentToolkit"
   REQUEST_ID: "${{ inputs.request_id }}"
 
 jobs:
@@ -97,21 +97,21 @@ jobs:
           fi
           echo "SKILL_SOURCE_DIR=.tmp/skills-source/skills/${SKILL_NAME}" >> "$GITHUB_ENV"
 
-      # ── Step 4: Read skill githubclaw.json ──────────────────────────
-      - name: Read skill githubclaw.json
+      # ── Step 4: Read skill githubagent.json ──────────────────────────
+      - name: Read skill githubagent.json
         if: env.INSTALL_FAILED != 'true'
         shell: bash
         run: |
           set -euo pipefail
 
-          MANIFEST="${SKILL_SOURCE_DIR}/githubclaw.json"
+          MANIFEST="${SKILL_SOURCE_DIR}/githubagent.json"
           if [[ ! -f "$MANIFEST" ]]; then
-            echo "No githubclaw.json found, skipping env configuration"
+            echo "No githubagent.json found, skipping env configuration"
             echo "REQUIRED_ENVS=" >> "$GITHUB_ENV"
             exit 0
           fi
 
-          # Extract env vars from githubclaw.json's requireEnv array into a comma-separated string
+          # Extract env vars from githubagent.json's requireEnv array into a comma-separated string
           ENVS=$(node -e "
             const fs = require('fs');
             const manifest = JSON.parse(fs.readFileSync('${MANIFEST}', 'utf8'));
@@ -150,9 +150,9 @@ jobs:
             git checkout -B "${TARGET_BRANCH}" origin/main
           fi
 
-          # Copy skill files (excluding the .githubclaw/ directory)
+          # Copy skill files (excluding the .githubagent/ directory)
           mkdir -p "${INSTALL_PATH}"
-          rsync -a --exclude='.githubclaw' "${SKILL_SOURCE_DIR}/" "${INSTALL_PATH}/"
+          rsync -a --exclude='.githubagent' "${SKILL_SOURCE_DIR}/" "${INSTALL_PATH}/"
           echo "✅ Copied skill files to ${INSTALL_PATH}"
           ls -la "${INSTALL_PATH}/"
 
@@ -173,7 +173,7 @@ jobs:
               echo "✅ Force-pushed skill files to ${TARGET_BRANCH}"
             else
               echo "INSTALL_FAILED=true" >> "$GITHUB_ENV"
-              echo "INSTALL_ERROR=[Step 5 - Install skill files] Could not save the skill files to the workspace (${TARGET_BRANCH}). This may be a permission issue. Please contact the admin to confirm that CLAW_SYS_GITHUB_TOKEN has repository write access." >> "$GITHUB_ENV"
+              echo "INSTALL_ERROR=[Step 5 - Install skill files] Could not save the skill files to the workspace (${TARGET_BRANCH}). This may be a permission issue. Please contact the admin to confirm that AGENT_SYS_GITHUB_TOKEN has repository write access." >> "$GITHUB_ENV"
             fi
           fi
 
@@ -183,7 +183,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          POST_INSTALL="${SKILL_SOURCE_DIR}/.githubclaw/post-install.sh"
+          POST_INSTALL="${SKILL_SOURCE_DIR}/.githubagent/post-install.sh"
           if [[ -f "$POST_INSTALL" ]]; then
             echo "Running post-install.sh..."
             export SKILL_NAME="${SKILL_NAME}"

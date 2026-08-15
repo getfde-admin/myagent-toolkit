@@ -174,7 +174,7 @@ async function main() {
         parts: [
           {
             text: (() => {
-              const code = process.env.CLAW_LANGUAGE || "en";
+              const code = process.env.AGENT_LANGUAGE || "en";
               const map = {
                 "zh-CN": "Simplified Chinese",
                 "en": "English"

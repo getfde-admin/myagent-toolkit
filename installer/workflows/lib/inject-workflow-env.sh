@@ -14,7 +14,7 @@
 #         OPENAI_API_KEY: ${{ env.OPENAI_API_KEY }}       ← 新增
 #
 # 【资料来源】
-#   技能的 githubclaw.json 里的 requireEnv 阵列（由 skills.yml Step 4 读取）
+#   技能的 githubagent.json 里的 requireEnv 阵列（由 skills.yml Step 4 读取）
 #   经 skills.yml Step 4 转成逗号分隔字串，存入 $REQUIRED_ENVS，再传给本脚本。
 #
 # 【idempotent】
