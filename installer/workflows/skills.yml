@@ -1,4 +1,4 @@
-# Skill installation workflow: installs a skill from jeffsia-blacksmith/myAgentToolkit to the workspace of the specified issue.
+# Skill installation workflow: installs a skill from getfde-admin/myagent-toolkit to the workspace of the specified issue.
 # Makes two commits: one on the issue-N branch (skill files), one on main (workflow YAML env vars).
 name: '🔧 Install Skill'
 run-name: "Skill install: ${{ inputs.skill_name }} | req:${{ inputs.request_id }}"
@@ -35,7 +35,7 @@ env:
   PUSH_TOKEN: "${{ secrets.AGENT_SYS_GITHUB_TOKEN || github.token }}"
   AUTOMATION_GIT_USER_NAME: "${{ vars['AUTOMATION_GIT_USER_NAME'] || 'github-actions[bot]' }}"
   AUTOMATION_GIT_USER_EMAIL: "${{ vars['AUTOMATION_GIT_USER_EMAIL'] || 'github-actions[bot]@users.noreply.github.com' }}"
-  SKILLS_SOURCE_REPO: "jeffsia-blacksmith/myAgentToolkit"
+  SKILLS_SOURCE_REPO: "getfde-admin/myagent-toolkit"
   REQUEST_ID: "${{ inputs.request_id }}"
 
 jobs:

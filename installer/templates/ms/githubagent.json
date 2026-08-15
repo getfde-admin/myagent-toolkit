@@ -5,8 +5,8 @@
   "category": "ai",
   "tags": ["ms", "melayu", "malay", "pi", "byok", "cloudflare", "anthropic", "openai", "gemini", "groq", "openrouter", "ollama"],
   "version": "1.0.0",
-  "support_url": "https://github.com/jeffsia-blacksmith/myAgentToolkit/issues",
-  "homepage": "https://github.com/jeffsia-blacksmith/myAgentToolkit",
+  "support_url": "https://github.com/getfde-admin/myagent-toolkit/issues",
+  "homepage": "https://github.com/getfde-admin/myagent-toolkit",
   "byokFlow": true,
   "byokConfig": {
     "path": ".pi/settings.json",

@@ -31,14 +31,14 @@ installer/
 
 | 用途 | 目前值 | 出现档案 |
 |---|---|---|
-| Toolkit 来源 repo | `jeffsia-blacksmith/myAgentToolkit` | `skills.yml`, `templates.yml`, `deploy-myagent.yml`, `issue-1.yml` |
-| Core package 网域 | `jeffsia-blacksmith.github.io/myAgentCore` | `deploy-myagent.yml`, `autoupdate.yml` |
+| Toolkit 来源 repo | `getfde-admin/myagent-toolkit` | `skills.yml`, `templates.yml`, `deploy-myagent.yml`, `issue-1.yml` |
+| Core package 网域 | `getfde-admin.github.io/myagent-core` | `deploy-myagent.yml`, `autoupdate.yml` |
 
 换值：
 ```bash
 cd installer/workflows
-grep -rl 'jeffsia-blacksmith/myAgentToolkit' . | xargs sed -i '' 's#jeffsia-blacksmith/myAgentToolkit#<新 owner>/<新 repo>#g'
-grep -rl 'jeffsia-blacksmith.github.io/myAgentCore' . | xargs sed -i '' 's#jeffsia-blacksmith.github.io/myAgentCore#<新 pages 网域>#g'
+grep -rl 'getfde-admin/myagent-toolkit' . | xargs sed -i '' 's#getfde-admin/myagent-toolkit#<新 owner>/<新 repo>#g'
+grep -rl 'getfde-admin.github.io/myagent-core' . | xargs sed -i '' 's#getfde-admin.github.io/myagent-core#<新 pages 网域>#g'
 ```
 
 ## 注意

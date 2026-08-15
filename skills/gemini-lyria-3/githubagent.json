@@ -5,7 +5,7 @@
   "category": "content",
   "tags": ["gemini", "lyria", "music-generation", "audio", "ai-music"],
   "version": "1.0.0",
-  "support_url": "https://github.com/jeffsia-blacksmith/myAgentToolkit/issues",
-  "homepage": "https://github.com/jeffsia-blacksmith/myAgentToolkit",
+  "support_url": "https://github.com/getfde-admin/myagent-toolkit/issues",
+  "homepage": "https://github.com/getfde-admin/myagent-toolkit",
   "requireEnv": ["GEMINI_API_KEY"]
 }

@@ -258,14 +258,14 @@ jobs:
 
       - name: Task failure handling
         if: failure() && steps.pi_task.conclusion == 'failure'
-        uses: jeffsia-blacksmith/myAgentToolkit/actions/error-handler-action@v1
+        uses: getfde-admin/myagent-toolkit/actions/error-handler-action@v1
         with:
           output_file: artifacts/${{ env.COMMENT_ID }}/error.log
           result_file: artifacts/${{ env.COMMENT_ID }}/result.md
 
       - name: Report execution result
         if: always()
-        uses: jeffsia-blacksmith/myAgentToolkit/actions/update-comment-action@v1
+        uses: getfde-admin/myagent-toolkit/actions/update-comment-action@v1
         with:
           issue_number: ${{ env.ISSUE_NUMBER }}
           comment_id: ${{ env.COMMENT_ID }}

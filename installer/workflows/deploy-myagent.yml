@@ -202,7 +202,7 @@ jobs:
           set -euo pipefail
 
           curl --fail --show-error --silent --location \
-            "https://jeffsia-blacksmith.github.io/myAgentCore/github-agent-worker-package.zip" \
+            "https://getfde-admin.github.io/myagent-core/github-agent-worker-package.zip" \
             --output "${RUNNER_TEMP}/github-agent-worker-package.zip"
 
           rm -rf "${RUNNER_TEMP}/github-agent-worker-package"
@@ -238,7 +238,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          TOOLKIT_REPO="https://github.com/jeffsia-blacksmith/myAgentToolkit.git"
+          TOOLKIT_REPO="https://github.com/getfde-admin/myagent-toolkit.git"
           TOOLKIT_DIR="${RUNNER_TEMP}/myAgentToolkit"
           LOCAL_TEMPLATE_DIR="${GITHUB_WORKSPACE}/templates"
           # Single source of truth: installer/templates (same source as AdminPage seed, avoiding a fork between templates/ and installer/templates)

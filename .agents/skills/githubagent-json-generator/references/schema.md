@@ -85,12 +85,12 @@
 ### support_url（必填）
 
 - **类型**：string
-- **固定值**：`https://github.com/jeffsia-blacksmith/myAgentToolkit/issues`
+- **固定值**：`https://github.com/getfde-admin/myagent-toolkit/issues`
 
 ### homepage（必填）
 
 - **类型**：string
-- **固定值**：`https://github.com/jeffsia-blacksmith/myAgentToolkit`
+- **固定值**：`https://github.com/getfde-admin/myagent-toolkit`
 
 ### requireEnv（必填）
 

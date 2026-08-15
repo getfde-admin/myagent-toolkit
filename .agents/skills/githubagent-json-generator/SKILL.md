@@ -43,8 +43,8 @@ description: 为 GitHubAgentToolkit 的 skill 或 template 目录生成 githubag
 4. **category**：根据功能选择合适分类（见 schema.md 中的合法值清单）
 5. **tags**：3-6 个相关标签，使用小写英文
 6. **version**：优先从 `package.json` 取得，无则预设 `1.0.0`
-7. **support_url**：固定为 `https://github.com/jeffsia-blacksmith/myAgentToolkit/issues`
-8. **homepage**：固定为 `https://github.com/jeffsia-blacksmith/myAgentToolkit`
+7. **support_url**：固定为 `https://github.com/getfde-admin/myagent-toolkit/issues`
+8. **homepage**：固定为 `https://github.com/getfde-admin/myagent-toolkit`
 9. **requireEnv**：从 SKILL.md 的 `required_env` 栏位、README 中的环境变数说明、或 scripts 中的 `process.env` 提取
 
 ### 步骤 4：生成 JSON
@@ -77,8 +77,8 @@ description: 为 GitHubAgentToolkit 的 skill 或 template 目录生成 githubag
   "category": "content",
   "tags": ["summarization", "gemini", "content-analysis", "multilingual"],
   "version": "1.0.0",
-  "support_url": "https://github.com/jeffsia-blacksmith/myAgentToolkit/issues",
-  "homepage": "https://github.com/jeffsia-blacksmith/myAgentToolkit",
+  "support_url": "https://github.com/getfde-admin/myagent-toolkit/issues",
+  "homepage": "https://github.com/getfde-admin/myagent-toolkit",
   "requireEnv": ["GEMINI_API_KEY"]
 }
 ```

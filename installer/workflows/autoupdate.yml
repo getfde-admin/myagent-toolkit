@@ -26,7 +26,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  PACKAGE_MANIFEST_URL: https://jeffsia-blacksmith.github.io/myAgentCore/github-agent-worker-package.json
+  PACKAGE_MANIFEST_URL: https://getfde-admin.github.io/myagent-core/github-agent-worker-package.json
 
 permissions:
   contents: write
