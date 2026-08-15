@@ -9,7 +9,7 @@
 * `$REPO_ROOT` 代表目前 Git Repo 的根目录。
 
 ## 1) 名词字典（高优先）
-* **Agent堡**： 指整个 Repo。
+* **MyAgent**： 指整个 Repo。
 * **小Agent**： 指单一 GitHub Issue。
 * **小Agent工作区**： 指单一 GitHub Issue 在执行时的分支与工作目录。例如：Issue Number 为 3 的时候，分支名称为 `issue-3`，所以在 `issue-3` 分支下的 `$REPO_ROOT` 就是小Agent的预设工作区。
 * **小Agent主记忆档案**： 在 **小Agent工作区** 的根目录下有个 `issue.md` 档案，此档案包含完整的 Issue 与 Comments 内容。
