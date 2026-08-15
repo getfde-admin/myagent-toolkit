@@ -1,10 +1,10 @@
-name: 🛡️ Agent Burger Environment Variables Check
+name: 🛡️ Agent Environment Variables Check
 
 on:
   workflow_call:
   workflow_dispatch:
 
-run-name: "🔍 Agent Burger Environment Variables Check"
+run-name: "🔍 Agent Environment Variables Check"
 
 concurrency:
   group: check-env-permissions-${{ github.repository }}
@@ -14,7 +14,7 @@ permissions: {}
 
 jobs:
   check-env-permissions:
-    name: 🛡️ Agent Burger Environment Variables Check
+    name: 🛡️ Agent Environment Variables Check
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -28,14 +28,14 @@ jobs:
       TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
       # ── Optional Secrets ──────────────────────────────────────────────────
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      CLAWBRAIN_API_KEY: ${{ secrets.CLAWBRAIN_API_KEY }}
+      AGENTBRAIN_API_KEY: ${{ secrets.AGENTBRAIN_API_KEY }}
       FELO_API_KEY: ${{ secrets.FELO_API_KEY }}
       # ── Repository Variables ──────────────────────────────────────────────
       WORKER_NAME: ${{ vars.WORKER_NAME }}
       WORKERS_SUBDOMAIN: ${{ vars.WORKERS_SUBDOMAIN }}
       WORKER_URL: ${{ vars.WORKER_URL }}
-      CLAWBRAIN_PROVIDER: ${{ vars.CLAWBRAIN_PROVIDER }}
-      CLAWBRAIN_MODEL: ${{ vars.CLAWBRAIN_MODEL }}
+      AGENTBRAIN_PROVIDER: ${{ vars.AGENTBRAIN_PROVIDER }}
+      AGENTBRAIN_MODEL: ${{ vars.AGENTBRAIN_MODEL }}
 
     steps:
 
@@ -638,109 +638,109 @@ jobs:
           fi
 
       # ══════════════════════════════════════════════════════════════════════
-      # CLAWBRAIN_API_KEY (optional)
+      # AGENTBRAIN_API_KEY (optional)
       # ══════════════════════════════════════════════════════════════════════
 
-      - name: "[TC-CB01] CLAWBRAIN_API_KEY — exists (optional)"
+      - name: "[TC-CB01] AGENTBRAIN_API_KEY — exists (optional)"
         id: tc_cb01
         continue-on-error: true
         run: |
-          if [[ -z "${CLAWBRAIN_API_KEY:-}" ]]; then
-            echo "ℹ️ CLAWBRAIN_API_KEY is not set (optional; ClawBrain features may be limited)"
+          if [[ -z "${AGENTBRAIN_API_KEY:-}" ]]; then
+            echo "ℹ️ AGENTBRAIN_API_KEY is not set (optional; AgentBrain features may be limited)"
             exit 0
           fi
-          echo "✅ CLAWBRAIN_API_KEY is set"
+          echo "✅ AGENTBRAIN_API_KEY is set"
 
-      - name: "[TC-CB02] CLAWBRAIN_API_KEY — non-blank value check (if present)"
+      - name: "[TC-CB02] AGENTBRAIN_API_KEY — non-blank value check (if present)"
         id: tc_cb02
         continue-on-error: true
         run: |
-          if [[ -z "${CLAWBRAIN_API_KEY:-}" ]]; then
-            echo "ℹ️ CLAWBRAIN_API_KEY is not set, skipping verification"
+          if [[ -z "${AGENTBRAIN_API_KEY:-}" ]]; then
+            echo "ℹ️ AGENTBRAIN_API_KEY is not set, skipping verification"
             exit 0
           fi
-          TRIMMED=$(echo "${CLAWBRAIN_API_KEY}" | tr -d '[:space:]')
+          TRIMMED=$(echo "${AGENTBRAIN_API_KEY}" | tr -d '[:space:]')
           if [[ -z "$TRIMMED" ]]; then
-            echo "::error::CLAWBRAIN_API_KEY is set but its value is blank"
+            echo "::error::AGENTBRAIN_API_KEY is set but its value is blank"
             exit 1
           fi
-          echo "✅ CLAWBRAIN_API_KEY is non-blank (length: ${#CLAWBRAIN_API_KEY} chars)"
+          echo "✅ AGENTBRAIN_API_KEY is non-blank (length: ${#AGENTBRAIN_API_KEY} chars)"
 
-      - name: "[TC-CB03] CLAWBRAIN_API_KEY — call the corresponding AI Provider API based on CLAWBRAIN_PROVIDER"
+      - name: "[TC-CB03] AGENTBRAIN_API_KEY — call the corresponding AI Provider API based on AGENTBRAIN_PROVIDER"
         id: tc_cb03
         continue-on-error: true
         run: |
-          if [[ -z "${CLAWBRAIN_API_KEY:-}" ]]; then
-            echo "ℹ️ CLAWBRAIN_API_KEY is not set, skipping API verification"
+          if [[ -z "${AGENTBRAIN_API_KEY:-}" ]]; then
+            echo "ℹ️ AGENTBRAIN_API_KEY is not set, skipping API verification"
             exit 0
           fi
-          PROVIDER="${CLAWBRAIN_PROVIDER:-}"
+          PROVIDER="${AGENTBRAIN_PROVIDER:-}"
           case "${PROVIDER}" in
             gemini)
               RESPONSE=$(curl -sS \
-                "https://generativelanguage.googleapis.com/v1beta/models?key=${CLAWBRAIN_API_KEY}&pageSize=1")
+                "https://generativelanguage.googleapis.com/v1beta/models?key=${AGENTBRAIN_API_KEY}&pageSize=1")
               if echo "$RESPONSE" | jq -e '.models' > /dev/null 2>&1; then
-                echo "✅ CLAWBRAIN_API_KEY is valid (provider: gemini, can access the Generative AI API)"
+                echo "✅ AGENTBRAIN_API_KEY is valid (provider: gemini, can access the Generative AI API)"
               else
                 MSG=$(echo "$RESPONSE" | jq -r '.error.message // empty' 2>/dev/null)
-                echo "::error::CLAWBRAIN_API_KEY verification failed (provider: gemini): ${MSG}"
+                echo "::error::AGENTBRAIN_API_KEY verification failed (provider: gemini): ${MSG}"
                 exit 1
               fi
               ;;
             openai)
               HTTP_STATUS=$(curl -sS -o /tmp/cb-api-response.json -w "%{http_code}" \
-                -H "Authorization: Bearer ${CLAWBRAIN_API_KEY}" \
+                -H "Authorization: Bearer ${AGENTBRAIN_API_KEY}" \
                 "https://api.openai.com/v1/models?limit=1")
               if [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 300 ]]; then
-                echo "✅ CLAWBRAIN_API_KEY is valid (provider: openai, HTTP ${HTTP_STATUS})"
+                echo "✅ AGENTBRAIN_API_KEY is valid (provider: openai, HTTP ${HTTP_STATUS})"
               else
                 MSG=$(cat /tmp/cb-api-response.json | jq -r '.error.message // empty' 2>/dev/null)
-                echo "::error::CLAWBRAIN_API_KEY verification failed (provider: openai, HTTP ${HTTP_STATUS}): ${MSG}"
+                echo "::error::AGENTBRAIN_API_KEY verification failed (provider: openai, HTTP ${HTTP_STATUS}): ${MSG}"
                 exit 1
               fi
               ;;
             anthropic)
               HTTP_STATUS=$(curl -sS -o /tmp/cb-api-response.json -w "%{http_code}" \
-                -H "x-api-key: ${CLAWBRAIN_API_KEY}" \
+                -H "x-api-key: ${AGENTBRAIN_API_KEY}" \
                 -H "anthropic-version: 2023-06-01" \
                 "https://api.anthropic.com/v1/models?limit=1")
               if [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 300 ]]; then
-                echo "✅ CLAWBRAIN_API_KEY is valid (provider: anthropic, HTTP ${HTTP_STATUS})"
+                echo "✅ AGENTBRAIN_API_KEY is valid (provider: anthropic, HTTP ${HTTP_STATUS})"
               else
                 MSG=$(cat /tmp/cb-api-response.json | jq -r '.error.message // empty' 2>/dev/null)
-                echo "::error::CLAWBRAIN_API_KEY verification failed (provider: anthropic, HTTP ${HTTP_STATUS}): ${MSG}"
+                echo "::error::AGENTBRAIN_API_KEY verification failed (provider: anthropic, HTTP ${HTTP_STATUS}): ${MSG}"
                 exit 1
               fi
               ;;
             groq)
               HTTP_STATUS=$(curl -sS -o /tmp/cb-api-response.json -w "%{http_code}" \
-                -H "Authorization: Bearer ${CLAWBRAIN_API_KEY}" \
+                -H "Authorization: Bearer ${AGENTBRAIN_API_KEY}" \
                 "https://api.groq.com/openai/v1/models")
               if [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 300 ]]; then
-                echo "✅ CLAWBRAIN_API_KEY is valid (provider: groq, HTTP ${HTTP_STATUS})"
+                echo "✅ AGENTBRAIN_API_KEY is valid (provider: groq, HTTP ${HTTP_STATUS})"
               else
                 MSG=$(cat /tmp/cb-api-response.json | jq -r '.error.message // empty' 2>/dev/null)
-                echo "::error::CLAWBRAIN_API_KEY verification failed (provider: groq, HTTP ${HTTP_STATUS}): ${MSG}"
+                echo "::error::AGENTBRAIN_API_KEY verification failed (provider: groq, HTTP ${HTTP_STATUS}): ${MSG}"
                 exit 1
               fi
               ;;
             mistral)
               HTTP_STATUS=$(curl -sS -o /tmp/cb-api-response.json -w "%{http_code}" \
-                -H "Authorization: Bearer ${CLAWBRAIN_API_KEY}" \
+                -H "Authorization: Bearer ${AGENTBRAIN_API_KEY}" \
                 "https://api.mistral.ai/v1/models")
               if [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 300 ]]; then
-                echo "✅ CLAWBRAIN_API_KEY is valid (provider: mistral, HTTP ${HTTP_STATUS})"
+                echo "✅ AGENTBRAIN_API_KEY is valid (provider: mistral, HTTP ${HTTP_STATUS})"
               else
                 MSG=$(cat /tmp/cb-api-response.json | jq -r '.error.message // empty' 2>/dev/null)
-                echo "::error::CLAWBRAIN_API_KEY verification failed (provider: mistral, HTTP ${HTTP_STATUS}): ${MSG}"
+                echo "::error::AGENTBRAIN_API_KEY verification failed (provider: mistral, HTTP ${HTTP_STATUS}): ${MSG}"
                 exit 1
               fi
               ;;
             *)
               if [[ -z "$PROVIDER" ]]; then
-                echo "⚠️ CLAWBRAIN_PROVIDER is not set, cannot confirm the corresponding API; only confirming that CLAWBRAIN_API_KEY is non-blank"
+                echo "⚠️ AGENTBRAIN_PROVIDER is not set, cannot confirm the corresponding API; only confirming that AGENTBRAIN_API_KEY is non-blank"
               else
-                echo "⚠️ CLAWBRAIN_PROVIDER '${PROVIDER}' does not support API verification, skipping (only confirming that CLAWBRAIN_API_KEY is non-blank)"
+                echo "⚠️ AGENTBRAIN_PROVIDER '${PROVIDER}' does not support API verification, skipping (only confirming that AGENTBRAIN_API_KEY is non-blank)"
               fi
               ;;
           esac
@@ -942,69 +942,69 @@ jobs:
           cat /tmp/health-response.json | jq . 2>/dev/null || cat /tmp/health-response.json
 
       # ══════════════════════════════════════════════════════════════════════
-      # CLAWBRAIN_PROVIDER (Repository Variable, optional)
+      # AGENTBRAIN_PROVIDER (Repository Variable, optional)
       # ══════════════════════════════════════════════════════════════════════
 
-      - name: "[TC-CP01] CLAWBRAIN_PROVIDER — exists (optional)"
+      - name: "[TC-CP01] AGENTBRAIN_PROVIDER — exists (optional)"
         id: tc_cp01
         continue-on-error: true
         run: |
-          if [[ -z "${CLAWBRAIN_PROVIDER:-}" ]]; then
-            echo "ℹ️ CLAWBRAIN_PROVIDER is not set (optional)"
+          if [[ -z "${AGENTBRAIN_PROVIDER:-}" ]]; then
+            echo "ℹ️ AGENTBRAIN_PROVIDER is not set (optional)"
             exit 0
           fi
-          echo "✅ CLAWBRAIN_PROVIDER is set: ${CLAWBRAIN_PROVIDER}"
+          echo "✅ AGENTBRAIN_PROVIDER is set: ${AGENTBRAIN_PROVIDER}"
 
-      - name: "[TC-CP02] CLAWBRAIN_PROVIDER — is a known AI provider (if present)"
+      - name: "[TC-CP02] AGENTBRAIN_PROVIDER — is a known AI provider (if present)"
         id: tc_cp02
         continue-on-error: true
         run: |
-          if [[ -z "${CLAWBRAIN_PROVIDER:-}" ]]; then
-            echo "ℹ️ CLAWBRAIN_PROVIDER is not set, skipping verification"
+          if [[ -z "${AGENTBRAIN_PROVIDER:-}" ]]; then
+            echo "ℹ️ AGENTBRAIN_PROVIDER is not set, skipping verification"
             exit 0
           fi
           KNOWN_PROVIDERS=("gemini" "openai" "anthropic" "groq" "ollama" "mistral" "azure")
           FOUND=false
           for p in "${KNOWN_PROVIDERS[@]}"; do
-            if [[ "${CLAWBRAIN_PROVIDER}" == "$p" ]]; then
+            if [[ "${AGENTBRAIN_PROVIDER}" == "$p" ]]; then
               FOUND=true
               break
             fi
           done
           if [[ "$FOUND" != "true" ]]; then
-            echo "::warning::CLAWBRAIN_PROVIDER '${CLAWBRAIN_PROVIDER}' is not in the known provider list (${KNOWN_PROVIDERS[*]}); may be a custom provider"
+            echo "::warning::AGENTBRAIN_PROVIDER '${AGENTBRAIN_PROVIDER}' is not in the known provider list (${KNOWN_PROVIDERS[*]}); may be a custom provider"
           else
-            echo "✅ CLAWBRAIN_PROVIDER '${CLAWBRAIN_PROVIDER}' is a known AI provider"
+            echo "✅ AGENTBRAIN_PROVIDER '${AGENTBRAIN_PROVIDER}' is a known AI provider"
           fi
 
       # ══════════════════════════════════════════════════════════════════════
-      # CLAWBRAIN_MODEL (Repository Variable, optional)
+      # AGENTBRAIN_MODEL (Repository Variable, optional)
       # ══════════════════════════════════════════════════════════════════════
 
-      - name: "[TC-CM01] CLAWBRAIN_MODEL — exists (optional)"
+      - name: "[TC-CM01] AGENTBRAIN_MODEL — exists (optional)"
         id: tc_cm01
         continue-on-error: true
         run: |
-          if [[ -z "${CLAWBRAIN_MODEL:-}" ]]; then
-            echo "ℹ️ CLAWBRAIN_MODEL is not set (optional)"
+          if [[ -z "${AGENTBRAIN_MODEL:-}" ]]; then
+            echo "ℹ️ AGENTBRAIN_MODEL is not set (optional)"
             exit 0
           fi
-          echo "✅ CLAWBRAIN_MODEL is set: ${CLAWBRAIN_MODEL}"
+          echo "✅ AGENTBRAIN_MODEL is set: ${AGENTBRAIN_MODEL}"
 
-      - name: "[TC-CM02] CLAWBRAIN_MODEL — non-blank value check (if present)"
+      - name: "[TC-CM02] AGENTBRAIN_MODEL — non-blank value check (if present)"
         id: tc_cm02
         continue-on-error: true
         run: |
-          if [[ -z "${CLAWBRAIN_MODEL:-}" ]]; then
-            echo "ℹ️ CLAWBRAIN_MODEL is not set, skipping verification"
+          if [[ -z "${AGENTBRAIN_MODEL:-}" ]]; then
+            echo "ℹ️ AGENTBRAIN_MODEL is not set, skipping verification"
             exit 0
           fi
-          TRIMMED=$(echo "${CLAWBRAIN_MODEL}" | tr -d '[:space:]')
+          TRIMMED=$(echo "${AGENTBRAIN_MODEL}" | tr -d '[:space:]')
           if [[ -z "$TRIMMED" ]]; then
-            echo "::error::CLAWBRAIN_MODEL is set but its value is blank"
+            echo "::error::AGENTBRAIN_MODEL is set but its value is blank"
             exit 1
           fi
-          echo "✅ CLAWBRAIN_MODEL is non-blank: ${CLAWBRAIN_MODEL}"
+          echo "✅ AGENTBRAIN_MODEL is non-blank: ${AGENTBRAIN_MODEL}"
 
       # ══════════════════════════════════════════════════════════════════════
       # Final summary (always runs)
@@ -1046,7 +1046,7 @@ jobs:
           OUTCOME_GM01: ${{ steps.tc_gm01.outcome }}
           OUTCOME_GM02: ${{ steps.tc_gm02.outcome }}
           OUTCOME_GM03: ${{ steps.tc_gm03.outcome }}
-          # ClawBrain API Key (optional)
+          # AgentBrain API Key (optional)
           OUTCOME_CB01: ${{ steps.tc_cb01.outcome }}
           OUTCOME_CB02: ${{ steps.tc_cb02.outcome }}
           OUTCOME_CB03: ${{ steps.tc_cb03.outcome }}
@@ -1065,10 +1065,10 @@ jobs:
           OUTCOME_WU01: ${{ steps.tc_wu01.outcome }}
           OUTCOME_WU02: ${{ steps.tc_wu02.outcome }}
           OUTCOME_WU03: ${{ steps.tc_wu03.outcome }}
-          # CLAWBRAIN_PROVIDER variable (optional)
+          # AGENTBRAIN_PROVIDER variable (optional)
           OUTCOME_CP01: ${{ steps.tc_cp01.outcome }}
           OUTCOME_CP02: ${{ steps.tc_cp02.outcome }}
-          # CLAWBRAIN_MODEL variable (optional)
+          # AGENTBRAIN_MODEL variable (optional)
           OUTCOME_CM01: ${{ steps.tc_cm01.outcome }}
           OUTCOME_CM02: ${{ steps.tc_cm02.outcome }}
         run: |
@@ -1113,7 +1113,7 @@ jobs:
           done
 
           {
-            echo "### 🔍 Agent Burger Environment Variables Check Result"
+            echo "### 🔍 Agent Environment Variables Check Result"
             echo ""
             echo "> Repository: \`${GITHUB_REPOSITORY}\`　|　Run time: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
             echo ""
@@ -1162,9 +1162,9 @@ jobs:
             echo "| TC-GM01 | \`GEMINI_API_KEY\`      | exists (optional)            | $(icon "$OUTCOME_GM01") |"
             echo "| TC-GM02 | \`GEMINI_API_KEY\`      | format check (if present)    | $(icon "$OUTCOME_GM02") |"
             echo "| TC-GM03 | \`GEMINI_API_KEY\`      | Google AI API verify (if present) | $(icon "$OUTCOME_GM03") |"
-            echo "| TC-CB01 | \`CLAWBRAIN_API_KEY\`   | exists (optional)            | $(icon "$OUTCOME_CB01") |"
-            echo "| TC-CB02 | \`CLAWBRAIN_API_KEY\`   | non-blank check (if present) | $(icon "$OUTCOME_CB02") |"
-            echo "| TC-CB03 | \`CLAWBRAIN_API_KEY\`   | Provider API verify (if present) | $(icon "$OUTCOME_CB03") |"
+            echo "| TC-CB01 | \`AGENTBRAIN_API_KEY\`   | exists (optional)            | $(icon "$OUTCOME_CB01") |"
+            echo "| TC-CB02 | \`AGENTBRAIN_API_KEY\`   | non-blank check (if present) | $(icon "$OUTCOME_CB02") |"
+            echo "| TC-CB03 | \`AGENTBRAIN_API_KEY\`   | Provider API verify (if present) | $(icon "$OUTCOME_CB03") |"
             echo "| TC-FL01 | \`FELO_API_KEY\`        | exists (optional)            | $(icon "$OUTCOME_FL01") |"
             echo "| TC-FL02 | \`FELO_API_KEY\`        | non-blank check (if present) | $(icon "$OUTCOME_FL02") |"
             echo "| TC-FL03 | \`FELO_API_KEY\`        | Felo API verify (if present) | $(icon "$OUTCOME_FL03") |"
@@ -1182,10 +1182,10 @@ jobs:
             echo "| TC-WU01  | \`WORKER_URL\`        | exists                        | $(icon "$OUTCOME_WU01") |"
             echo "| TC-WU02  | \`WORKER_URL\`        | format check (HTTPS URL)      | $(icon "$OUTCOME_WU02") |"
             echo "| TC-WU03  | \`WORKER_URL\`        | Worker /health endpoint accessible | $(icon "$OUTCOME_WU03") |"
-            echo "| TC-CP01  | \`CLAWBRAIN_PROVIDER\` | exists (optional)            | $(icon "$OUTCOME_CP01") |"
-            echo "| TC-CP02  | \`CLAWBRAIN_PROVIDER\` | is a known AI provider (if present) | $(icon "$OUTCOME_CP02") |"
-            echo "| TC-CM01  | \`CLAWBRAIN_MODEL\`    | exists (optional)            | $(icon "$OUTCOME_CM01") |"
-            echo "| TC-CM02  | \`CLAWBRAIN_MODEL\`    | non-blank check (if present) | $(icon "$OUTCOME_CM02") |"
+            echo "| TC-CP01  | \`AGENTBRAIN_PROVIDER\` | exists (optional)            | $(icon "$OUTCOME_CP01") |"
+            echo "| TC-CP02  | \`AGENTBRAIN_PROVIDER\` | is a known AI provider (if present) | $(icon "$OUTCOME_CP02") |"
+            echo "| TC-CM01  | \`AGENTBRAIN_MODEL\`    | exists (optional)            | $(icon "$OUTCOME_CM01") |"
+            echo "| TC-CM02  | \`AGENTBRAIN_MODEL\`    | non-blank check (if present) | $(icon "$OUTCOME_CM02") |"
           } >> "$GITHUB_STEP_SUMMARY"
 
           echo ""

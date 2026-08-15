@@ -1,4 +1,4 @@
-name: ⚒️ Deploy Agent Burger
+name: ⚒️ Deploy Agent
 
 on:
   workflow_call:
@@ -37,7 +37,7 @@ on:
         required: true
         type: string
 
-run-name: "⚒️ Deploy Agent Burger"
+run-name: "⚒️ Deploy Agent"
 
 concurrency:
   group: deploy-myagent-${{ github.repository }}
@@ -48,7 +48,7 @@ permissions:
 
 jobs:
   deploy:
-    name: ⚒️ Deploy Agent Burger
+    name: ⚒️ Deploy Agent
     runs-on: ubuntu-latest
     timeout-minutes: 30
     defaults:
@@ -322,7 +322,7 @@ jobs:
             exit 0
           fi
 
-          git commit -m "chore: sync agent burger package"
+          git commit -m "chore: sync agent package"
           git push origin HEAD:main
 
       - name: Sync GitHub settings
@@ -611,7 +611,7 @@ jobs:
           schedules_db_uuid="${SCHEDULES_DB_UUID:-"-"}"
 
           {
-            echo "### Deploy Agent Burger"
+            echo "### Deploy Agent"
             echo
             echo "| Field | Value |"
             echo "| --- | --- |"

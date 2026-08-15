@@ -1,4 +1,4 @@
-name: 🤖 Agent Burger Core Update
+name: 🤖 Agent Core Update
 
 on:
   schedule:
@@ -19,7 +19,7 @@ on:
         default: ""
 
 run-name: >-
-  🤖 Agent Burger Core Update: ${{ github.repository }}${{ github.event_name == 'workflow_dispatch' && inputs.request_id != '' && format(' | req:{0}', inputs.request_id) || '' }}
+  🤖 Agent Core Update: ${{ github.repository }}${{ github.event_name == 'workflow_dispatch' && inputs.request_id != '' && format(' | req:{0}', inputs.request_id) || '' }}
 
 concurrency:
   group: auto-update-${{ github.repository }}
@@ -50,8 +50,8 @@ jobs:
       - name: Read remote package manifest
         id: compare
         env:
-          STORED_VERSION: ${{ vars.LOBSTER_BURGER_PACKAGE_VERSION }}
-          STORED_REVISION: ${{ vars.LOBSTER_BURGER_PACKAGE_REVISION }}
+          STORED_VERSION: ${{ vars.AGENT_PACKAGE_VERSION }}
+          STORED_REVISION: ${{ vars.AGENT_PACKAGE_REVISION }}
           FORCE: ${{ inputs.force }}
         run: |
           set -euo pipefail
@@ -101,8 +101,8 @@ jobs:
         env:
           REMOTE_VERSION: ${{ steps.compare.outputs.remote_version }}
           REMOTE_REVISION: ${{ steps.compare.outputs.remote_revision }}
-          STORED_VERSION: ${{ vars.LOBSTER_BURGER_PACKAGE_VERSION }}
-          STORED_REVISION: ${{ vars.LOBSTER_BURGER_PACKAGE_REVISION }}
+          STORED_VERSION: ${{ vars.AGENT_PACKAGE_VERSION }}
+          STORED_REVISION: ${{ vars.AGENT_PACKAGE_REVISION }}
         run: |
           echo "### 🤖 Auto Update Result" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
@@ -141,17 +141,17 @@ jobs:
           set -euo pipefail
 
           if [[ -n "${REMOTE_VERSION:-}" ]]; then
-            gh variable set LOBSTER_BURGER_PACKAGE_VERSION \
+            gh variable set AGENT_PACKAGE_VERSION \
               --body "$REMOTE_VERSION" \
               --repo "$GITHUB_REPOSITORY"
-            echo "✅ Updated LOBSTER_BURGER_PACKAGE_VERSION -> $REMOTE_VERSION"
+            echo "✅ Updated AGENT_PACKAGE_VERSION -> $REMOTE_VERSION"
           fi
 
           if [[ -n "${REMOTE_REVISION:-}" ]]; then
-            gh variable set LOBSTER_BURGER_PACKAGE_REVISION \
+            gh variable set AGENT_PACKAGE_REVISION \
               --body "$REMOTE_REVISION" \
               --repo "$GITHUB_REPOSITORY"
-            echo "✅ Updated LOBSTER_BURGER_PACKAGE_REVISION -> $REMOTE_REVISION"
+            echo "✅ Updated AGENT_PACKAGE_REVISION -> $REMOTE_REVISION"
           fi
 
       - name: Summary

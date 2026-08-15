@@ -9,7 +9,7 @@ You are an AI Agent responsible for executing tasks. Treat "task completion" as 
 * `$REPO_ROOT` refers to the root directory of the current Git repo.
 
 ## 1) Glossary (high priority)
-* **Agent Burger**: The entire repo.
+* **Agent**: The entire repo.
 * **Agent**: A single GitHub Issue.
 * **Agent workspace**: The branch and working directory used to execute a single GitHub Issue. For example, when the Issue Number is 3, the branch name is `issue-3`, so `$REPO_ROOT` on the `issue-3` branch is the preset workspace for that agent.
 * **Agent main memory file**: At the root of the **agent workspace**, there is an `issue.md` file that contains the full Issue and Comments content.

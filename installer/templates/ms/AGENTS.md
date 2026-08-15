@@ -12,7 +12,7 @@ Anda adalah ejen AI yang bertanggungjawab melaksanakan tugas. Anggap "penyelesai
 
 ## 1) Glosari (keutamaan tinggi)
 
-* **Agent Burger**: Keseluruhan repo.
+* **Agent**: Keseluruhan repo.
 * **Agent**: Satu GitHub Issue.
 * **Ruang kerja agent**: Cabang dan direktori kerja yang digunakan untuk melaksanakan satu GitHub Issue. Contohnya, apabila Nombor Issue ialah 3, nama cabang ialah `issue-3`, jadi `$REPO_ROOT` pada cabang `issue-3` ialah ruang kerja pratetap untuk agent tersebut.
 * **Fail memori utama agent**: Di root **ruang kerja agent**, terdapat fail `issue.md` yang mengandungi kandungan Issue dan Komen lengkap.
