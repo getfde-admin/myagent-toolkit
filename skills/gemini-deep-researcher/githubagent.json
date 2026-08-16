@@ -1,7 +1,7 @@
 {
   "name": "Gemini Deep Researcher",
-  "tagline": "深度研究报告产生器，附引用来源的完整繁中报告",
-  "description": "Gemini Deep Researcher 使用 Gemini Deep Research Agent 针对任意主题产出结构完整、附引用来源的繁体中文研究报告。报告自动分为摘要、背景、主要发现、分析、结论与参考来源，适合决策分析、简报准备与主题学习。",
+  "tagline": "In-depth research report generator with comprehensive structure and cited sources",
+  "description": "Gemini Deep Researcher uses the Gemini Deep Research Agent to generate comprehensive, well-structured research reports with full source citations on any topic. Reports are automatically organized into executive summary, background, key findings, analysis, conclusion, and references—ideal for strategic analysis, presentations, and domain learning.",
   "category": "content",
   "tags": ["gemini", "research", "deep-analysis", "report", "citations"],
   "version": "1.0.0",

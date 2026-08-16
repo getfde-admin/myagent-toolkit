@@ -1,7 +1,7 @@
 {
   "name": "Gemini Image Describer",
-  "tagline": "图片内容描述与文字辨识，输出繁体中文分析",
-  "description": "Gemini Image Describer 使用 Gemini Interactions API 分析图片并产生繁体中文 Markdown 描述，包含场景描述、文字辨识（OCR）与关键物件列表。支援 JPEG、PNG、GIF、WebP 等多种格式，可接受本机档案、远端 URL 与 data URI。",
+  "tagline": "Image scene description and optical character recognition (OCR) with structured analysis",
+  "description": "Gemini Image Describer uses the Gemini Interactions API to analyze images and generate structured Markdown descriptions, including scene summaries, optical character recognition (OCR), and key object breakdowns. It supports JPEG, PNG, GIF, WebP formats across local files, remote URLs, and data URIs.",
   "category": "content",
   "tags": ["gemini", "image", "ocr", "description", "vision"],
   "version": "1.0.0",

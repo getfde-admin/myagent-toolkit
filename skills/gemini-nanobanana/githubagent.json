@@ -1,7 +1,7 @@
 {
   "name": "Gemini Nanobanana",
-  "tagline": "AI 图片生成与编辑，支援文字生图、多图合成",
-  "description": "Gemini Nanobanana 使用 Gemini Nano Banana 2 模型进行 AI 图片生成与编辑。支援文字生图、图片编辑、多图合成（最多 14 张参考图）、Google Search grounding，并可自订长宽比与解析度，适合设计、创作与视觉内容产出。",
+  "tagline": "AI image generation and editing supporting text-to-image and multi-image composition",
+  "description": "Gemini Nanobanana uses the Gemini Nano Banana 2 model for AI image generation and editing. It supports text-to-image synthesis, image modification, multi-image composition (up to 14 reference images), Google Search grounding, and custom aspect ratios and resolutions for design and visual content creation.",
   "category": "content",
   "tags": ["gemini", "image-generation", "nanobanana", "editing", "ai-art"],
   "version": "1.0.0",

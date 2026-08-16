@@ -29,7 +29,6 @@ jobs:
       # ── Optional Secrets ──────────────────────────────────────────────────
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       AGENTBRAIN_API_KEY: ${{ secrets.AGENTBRAIN_API_KEY }}
-      FELO_API_KEY: ${{ secrets.FELO_API_KEY }}
       # ── Repository Variables ──────────────────────────────────────────────
       WORKER_NAME: ${{ vars.WORKER_NAME }}
       WORKERS_SUBDOMAIN: ${{ vars.WORKERS_SUBDOMAIN }}
@@ -712,18 +711,6 @@ jobs:
                 exit 1
               fi
               ;;
-            groq)
-              HTTP_STATUS=$(curl -sS -o /tmp/cb-api-response.json -w "%{http_code}" \
-                -H "Authorization: Bearer ${AGENTBRAIN_API_KEY}" \
-                "https://api.groq.com/openai/v1/models")
-              if [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 300 ]]; then
-                echo "✅ AGENTBRAIN_API_KEY is valid (provider: groq, HTTP ${HTTP_STATUS})"
-              else
-                MSG=$(cat /tmp/cb-api-response.json | jq -r '.error.message // empty' 2>/dev/null)
-                echo "::error::AGENTBRAIN_API_KEY verification failed (provider: groq, HTTP ${HTTP_STATUS}): ${MSG}"
-                exit 1
-              fi
-              ;;
             mistral)
               HTTP_STATUS=$(curl -sS -o /tmp/cb-api-response.json -w "%{http_code}" \
                 -H "Authorization: Bearer ${AGENTBRAIN_API_KEY}" \
@@ -745,62 +732,6 @@ jobs:
               ;;
           esac
 
-      # ══════════════════════════════════════════════════════════════════════
-      # FELO_API_KEY (optional)
-      # ══════════════════════════════════════════════════════════════════════
-
-      - name: "[TC-FL01] FELO_API_KEY — exists (optional)"
-        id: tc_fl01
-        continue-on-error: true
-        run: |
-          if [[ -z "${FELO_API_KEY:-}" ]]; then
-            echo "ℹ️ FELO_API_KEY is not set (optional; Felo-related tools will be unavailable)"
-            exit 0
-          fi
-          echo "✅ FELO_API_KEY is set"
-
-      - name: "[TC-FL02] FELO_API_KEY — non-blank value check (if present)"
-        id: tc_fl02
-        continue-on-error: true
-        run: |
-          if [[ -z "${FELO_API_KEY:-}" ]]; then
-            echo "ℹ️ FELO_API_KEY is not set, skipping verification"
-            exit 0
-          fi
-          TRIMMED=$(echo "${FELO_API_KEY}" | tr -d '[:space:]')
-          if [[ -z "$TRIMMED" ]]; then
-            echo "::error::FELO_API_KEY is set but its value is blank"
-            exit 1
-          fi
-          echo "✅ FELO_API_KEY is non-blank (length: ${#FELO_API_KEY} chars)"
-
-      - name: "[TC-FL03] FELO_API_KEY — Felo API verification (POST /v2/chat)"
-        id: tc_fl03
-        continue-on-error: true
-        run: |
-          if [[ -z "${FELO_API_KEY:-}" ]]; then
-            echo "ℹ️ FELO_API_KEY is not set, skipping API verification"
-            exit 0
-          fi
-          HTTP_STATUS=$(curl -sS -o /tmp/felo-response.json -w "%{http_code}" \
-            --connect-timeout 15 --max-time 30 \
-            -X POST \
-            -H "Authorization: Bearer ${FELO_API_KEY}" \
-            -H "Content-Type: application/json" \
-            -d '{"query":"test"}' \
-            "https://openapi.felo.ai/v2/chat")
-          STATUS_FIELD=$(cat /tmp/felo-response.json | jq -r '.status // empty' 2>/dev/null)
-          if [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 300 ]] && \
-             { [[ "$STATUS_FIELD" == "ok" ]] || [[ "$STATUS_FIELD" == "200" ]]; }; then
-            echo "✅ FELO_API_KEY is valid (Felo API responded normally, HTTP ${HTTP_STATUS})"
-          elif [[ "$HTTP_STATUS" == "401" || "$HTTP_STATUS" == "403" ]]; then
-            MSG=$(cat /tmp/felo-response.json | jq -r '.message // .error // empty' 2>/dev/null)
-            echo "::error::FELO_API_KEY is invalid or expired (HTTP ${HTTP_STATUS}): ${MSG}"
-            exit 1
-          else
-            MSG=$(cat /tmp/felo-response.json | jq -r '.message // .error // empty' 2>/dev/null)
-            echo "::warning::FELO_API_KEY API returned an unexpected response (HTTP ${HTTP_STATUS}): ${MSG}"
-          fi
 
       # ══════════════════════════════════════════════════════════════════════
       # WORKER_NAME (Repository Variable, required)
@@ -963,7 +894,7 @@ jobs:
             echo "ℹ️ AGENTBRAIN_PROVIDER is not set, skipping verification"
             exit 0
           fi
-          KNOWN_PROVIDERS=("gemini" "openai" "anthropic" "groq" "ollama" "mistral" "azure")
+          KNOWN_PROVIDERS=("gemini" "openai" "anthropic" "ollama" "mistral" "azure")
           FOUND=false
           for p in "${KNOWN_PROVIDERS[@]}"; do
             if [[ "${AGENTBRAIN_PROVIDER}" == "$p" ]]; then
@@ -1050,10 +981,6 @@ jobs:
           OUTCOME_CB01: ${{ steps.tc_cb01.outcome }}
           OUTCOME_CB02: ${{ steps.tc_cb02.outcome }}
           OUTCOME_CB03: ${{ steps.tc_cb03.outcome }}
-          # Felo API Key (optional)
-          OUTCOME_FL01: ${{ steps.tc_fl01.outcome }}
-          OUTCOME_FL02: ${{ steps.tc_fl02.outcome }}
-          OUTCOME_FL03: ${{ steps.tc_fl03.outcome }}
           # WORKER_NAME variable
           OUTCOME_WN01: ${{ steps.tc_wn01.outcome }}
           OUTCOME_WN02: ${{ steps.tc_wn02.outcome }}
@@ -1103,7 +1030,6 @@ jobs:
             "$OUTCOME_TW01" "$OUTCOME_TW02" "$OUTCOME_TW03" \
             "$OUTCOME_GM01" "$OUTCOME_GM02" "$OUTCOME_GM03" \
             "$OUTCOME_CB01" "$OUTCOME_CB02" "$OUTCOME_CB03" \
-            "$OUTCOME_FL01" "$OUTCOME_FL02" "$OUTCOME_FL03" \
             "$OUTCOME_WN01" "$OUTCOME_WN02" "$OUTCOME_WN03" \
             "$OUTCOME_SUB01" "$OUTCOME_SUB02" \
             "$OUTCOME_WU01" "$OUTCOME_WU02" "$OUTCOME_WU03" \
@@ -1165,9 +1091,6 @@ jobs:
             echo "| TC-CB01 | \`AGENTBRAIN_API_KEY\`   | exists (optional)            | $(icon "$OUTCOME_CB01") |"
             echo "| TC-CB02 | \`AGENTBRAIN_API_KEY\`   | non-blank check (if present) | $(icon "$OUTCOME_CB02") |"
             echo "| TC-CB03 | \`AGENTBRAIN_API_KEY\`   | Provider API verify (if present) | $(icon "$OUTCOME_CB03") |"
-            echo "| TC-FL01 | \`FELO_API_KEY\`        | exists (optional)            | $(icon "$OUTCOME_FL01") |"
-            echo "| TC-FL02 | \`FELO_API_KEY\`        | non-blank check (if present) | $(icon "$OUTCOME_FL02") |"
-            echo "| TC-FL03 | \`FELO_API_KEY\`        | Felo API verify (if present) | $(icon "$OUTCOME_FL03") |"
             echo ""
 
             echo "#### Repository Variables"

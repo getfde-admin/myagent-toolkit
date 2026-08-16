@@ -1,7 +1,7 @@
 {
   "name": "Skill Creator",
-  "tagline": "技能建立工具箱，从建立、测试到评估与改进一站完成",
-  "description": "Skill Creator 提供完整的技能开发工作流程，包含建立新技能、产生测试案例、执行评估（eval）、benchmark 比较与触发描述优化。支援迭代改进流程，根据定量指标与定性回馈持续提升技能品质与触发准确度。",
+  "tagline": "Skill development toolkit for creating, testing, evaluating, and refining skills end-to-end",
+  "description": "Skill Creator provides a complete skill development workflow, including scaffolding new skills, generating test cases, running evaluations, benchmarking comparisons, and optimizing trigger descriptions. It supports an iterative improvement cycle based on quantitative metrics and qualitative feedback to enhance skill quality and trigger accuracy.",
   "category": "meta",
   "tags": ["skill-creation", "evaluation", "benchmark", "testing", "optimization"],
   "version": "1.0.0",

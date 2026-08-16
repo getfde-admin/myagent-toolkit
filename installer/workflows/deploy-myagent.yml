@@ -16,7 +16,6 @@ on:
       telegram_allowed_chat_id: { required: false, type: string, default: "" }
       telegram_allowed_from_id: { required: false, type: string, default: "" }
       gemini_api_key: { required: false, type: string, default: "" }
-      felo_api_key: { required: false, type: string, default: "" }
       debug_mode: { required: false, type: string, default: "false" }
       init_github_agent: { required: false, type: string, default: "true" }
   # GitHub caps workflow_dispatch at 10 defined inputs (see actions/runner#1425),
@@ -32,7 +31,7 @@ on:
           agent_sys_github_token, github_webhook_secret,
           cloudflare_api_token, cloudflare_account_id, telegram_bot_token,
           telegram_webhook_secret, telegram_chat_id, telegram_allowed_chat_id,
-          telegram_allowed_from_id, gemini_api_key, felo_api_key, debug_mode,
+          telegram_allowed_from_id, gemini_api_key, debug_mode,
           init_github_agent
         required: true
         type: string
@@ -88,7 +87,6 @@ jobs:
           WC_TELEGRAM_ALLOWED_CHAT_ID: ${{ inputs.telegram_allowed_chat_id }}
           WC_TELEGRAM_ALLOWED_FROM_ID: ${{ inputs.telegram_allowed_from_id }}
           WC_GEMINI_API_KEY: ${{ inputs.gemini_api_key }}
-          WC_FELO_API_KEY: ${{ inputs.felo_api_key }}
           WC_DEBUG_MODE: ${{ inputs.debug_mode }}
           WC_INIT_GITHUB_AGENT: ${{ inputs.init_github_agent }}
           SECRET_AGENT_SYS_GITHUB_TOKEN: ${{ secrets.AGENT_SYS_GITHUB_TOKEN }}
@@ -101,7 +99,6 @@ jobs:
           SECRET_TELEGRAM_ALLOWED_CHAT_ID: ${{ secrets.TELEGRAM_ALLOWED_CHAT_ID }}
           SECRET_TELEGRAM_ALLOWED_FROM_ID: ${{ secrets.TELEGRAM_ALLOWED_FROM_ID }}
           SECRET_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          SECRET_FELO_API_KEY: ${{ secrets.FELO_API_KEY }}
           VAR_PROFILE_NAME: ${{ vars.PROFILE_NAME }}
           VAR_PERSONALITY: ${{ vars.PERSONALITY }}
           VAR_AGENT_LANGUAGE: ${{ vars.AGENT_LANGUAGE }}
@@ -125,7 +122,6 @@ jobs:
             telegram_allowed_chat_id="$(json_get telegram_allowed_chat_id)"
             telegram_allowed_from_id="$(json_get telegram_allowed_from_id)"
             gemini_api_key="$(json_get gemini_api_key)"
-            felo_api_key="$(json_get felo_api_key)"
             debug_mode="$(json_get debug_mode)"
             init_github_agent="$(json_get init_github_agent)"
           else
@@ -142,7 +138,6 @@ jobs:
             telegram_allowed_chat_id="${WC_TELEGRAM_ALLOWED_CHAT_ID:-}"
             telegram_allowed_from_id="${WC_TELEGRAM_ALLOWED_FROM_ID:-}"
             gemini_api_key="${WC_GEMINI_API_KEY:-}"
-            felo_api_key="${WC_FELO_API_KEY:-}"
             debug_mode="${WC_DEBUG_MODE:-}"
             init_github_agent="${WC_INIT_GITHUB_AGENT:-}"
           fi
@@ -161,7 +156,6 @@ jobs:
           telegram_allowed_chat_id="${telegram_allowed_chat_id:-${SECRET_TELEGRAM_ALLOWED_CHAT_ID:-$telegram_chat_id}}"
           telegram_allowed_from_id="${telegram_allowed_from_id:-${SECRET_TELEGRAM_ALLOWED_FROM_ID:-$telegram_chat_id}}"
           gemini_api_key="${gemini_api_key:-$SECRET_GEMINI_API_KEY}"
-          felo_api_key="${felo_api_key:-$SECRET_FELO_API_KEY}"
           debug_mode="${debug_mode:-${VAR_DEBUG_MODE:-false}}"
           init_github_agent="${init_github_agent:-${VAR_INIT_GITHUB_AGENT:-true}}"
           [[ "$debug_mode" == "true" ]] && debug_mode=true || debug_mode=false
@@ -169,7 +163,7 @@ jobs:
 
           for v in "$agent_sys_github_token" "$github_webhook_secret" \
                    "$cloudflare_api_token" "$telegram_bot_token" "$telegram_webhook_secret" \
-                   "$gemini_api_key" "$felo_api_key"; do
+                   "$gemini_api_key"; do
             [[ -n "$v" ]] && echo "::add-mask::$v"
           done
 
@@ -193,7 +187,6 @@ jobs:
           write_env TF_VAR_telegram_allowed_chat_id "$telegram_allowed_chat_id"
           write_env TF_VAR_telegram_allowed_from_id "$telegram_allowed_from_id"
           write_env TF_VAR_gemini_api_key "$gemini_api_key"
-          write_env TF_VAR_felo_api_key "$felo_api_key"
           write_env TF_VAR_debug_mode "$debug_mode"
           write_env TF_VAR_init_github_agent "$init_github_agent"
 
@@ -343,7 +336,6 @@ jobs:
           TELEGRAM_ALLOWED_CHAT_ID: ${{ env.TF_VAR_telegram_allowed_chat_id }}
           TELEGRAM_ALLOWED_FROM_ID: ${{ env.TF_VAR_telegram_allowed_from_id }}
           GEMINI_API_KEY: ${{ env.TF_VAR_gemini_api_key }}
-          FELO_API_KEY: ${{ env.TF_VAR_felo_api_key }}
         run: |
           set -euo pipefail
 
@@ -376,7 +368,7 @@ jobs:
             gh secret set "${secret_name}" --repo "${GITHUB_REPOSITORY}" --body "${!secret_name}"
           done
 
-          for optional_secret in GEMINI_API_KEY FELO_API_KEY
+          for optional_secret in GEMINI_API_KEY
           do
             if [[ -n "${!optional_secret}" ]]; then
               gh secret set "${optional_secret}" --repo "${GITHUB_REPOSITORY}" --body "${!optional_secret}"

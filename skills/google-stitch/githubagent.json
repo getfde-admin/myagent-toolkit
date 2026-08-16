@@ -1,7 +1,7 @@
 {
   "name": "Google Stitch",
-  "tagline": "UI 设计图产生器，一句话生出设计图加 HTML 程式码",
-  "description": "Google Stitch 使用 Gemini 模型从文字描述一次产出 UI 设计图与对应 HTML 程式码。支援自订长宽比与解析度，设计图与 HTML 自动存档，适合快速制作 UI 原型、Landing Page 草稿与设计概念验证。",
+  "tagline": "UI mockup generator that creates design mockups and HTML code from text prompts",
+  "description": "Google Stitch uses Gemini models to generate both UI design mockups and corresponding HTML code in a single prompt. It supports customizable aspect ratios and resolutions, automatically saving designs and code for rapid UI prototyping, landing page drafts, and concept validation.",
   "category": "content",
   "tags": ["gemini", "ui-design", "html", "mockup", "prototyping"],
   "version": "1.0.0",

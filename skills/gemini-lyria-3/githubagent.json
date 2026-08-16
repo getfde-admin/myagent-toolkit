@@ -1,7 +1,7 @@
 {
   "name": "Gemini Lyria-3",
-  "tagline": "AI 音乐生成，从歌词或提示词一键产出音轨",
-  "description": "Gemini Lyria-3 使用 Google Lyria-3 模型，根据使用者提供的歌词或文字描述生成 AI 音乐音轨。支援串流输出、多段音轨储存，并自动以结构化格式回报生成结果，适合音乐创作、作曲辅助与自动化音讯生成情境。",
+  "tagline": "AI music generator that creates audio tracks from lyrics or text prompts",
+  "description": "Gemini Lyria-3 utilizes the Google Lyria-3 model to generate AI music tracks based on user-provided lyrics or text descriptions. It supports streaming output, multi-track storage, and structured status reporting, making it ideal for music creation, composition assistance, and automated audio generation.",
   "category": "content",
   "tags": ["gemini", "lyria", "music-generation", "audio", "ai-music"],
   "version": "1.0.0",

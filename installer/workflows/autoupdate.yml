@@ -128,7 +128,7 @@ jobs:
     needs:
       - check-version
       - deploy
-    if: needs.deploy.result == 'success'
+    if: always() && needs.deploy.result == 'success'
     runs-on: ubuntu-latest
     permissions: {}
     env:
@@ -154,14 +154,60 @@ jobs:
             echo "✅ Updated AGENT_PACKAGE_REVISION -> $REMOTE_REVISION"
           fi
 
+  sync-templates:
+    name: Sync upstream templates & models
+    runs-on: ubuntu-latest
+    needs: check-version
+    if: always()
+    steps:
+      - name: Checkout instance repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.AGENT_SYS_GITHUB_TOKEN || github.token }}
+
+      - name: Checkout upstream templates & models
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ vars.TEMPLATES_SOURCE_REPO || 'getfde-admin/myagent-toolkit' }}
+          ref: main
+          path: upstream-toolkit
+          sparse-checkout: |
+            installer/templates/
+
+      - name: Sync upstream templates & models.json to main branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -d "upstream-toolkit/installer/templates" && -d "templates" ]]; then
+            echo "🔄 Syncing updated template models and specs from upstream..."
+            for dir in templates/*; do
+              if [[ -d "$dir" ]]; then
+                tpl_name="$(basename "$dir")"
+                src="upstream-toolkit/installer/templates/$tpl_name"
+                if [[ -d "$src" ]]; then
+                  echo "Updating template: $tpl_name"
+                  rsync -a "$src/" "$dir/"
+                fi
+              fi
+            done
+
+            git config user.name "${{ vars.AUTOMATION_GIT_USER_NAME || 'github-actions[bot]' }}"
+            git config user.email "${{ vars.AUTOMATION_GIT_USER_EMAIL || 'github-actions[bot]@users.noreply.github.com' }}"
+            git remote set-url origin "https://x-access-token:${{ secrets.AGENT_SYS_GITHUB_TOKEN || github.token }}@github.com/${{ github.repository }}.git"
+
+            git add templates/
+            if ! git diff --cached --quiet; then
+              git commit -m "chore(templates): auto-sync latest models and templates from upstream"
+              git push origin HEAD:main
+              echo "✅ Template models and configurations synced successfully"
+            else
+              echo "ℹ️ Templates already up to date with upstream"
+            fi
+          fi
+
       - name: Summary
         run: |
           echo "### 🤖 Auto Update Result" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "**Version comparison and deployment completed.**" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|------|-----|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Repository | \`${GITHUB_REPOSITORY}\` |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Package version | \`${REMOTE_VERSION:-not provided}\` |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Package revision | \`${REMOTE_REVISION:-not provided}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Template & model synchronization completed.**" >> "$GITHUB_STEP_SUMMARY"

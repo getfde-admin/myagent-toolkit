@@ -1,7 +1,7 @@
 {
   "name": "Find Skills",
-  "tagline": "技能探索工具，根据需求推荐最适合的技能组合",
-  "description": "Find Skills 能根据任务目标分析所需能力，搜寻所有可用技能并筛选出最佳选项。当任务需要多个技能搭配时，会建议使用顺序并提供设定说明，帮助快速找到并启用正确的技能。",
+  "tagline": "Skill discovery tool that recommends the best skill combinations based on your requirements",
+  "description": "Find Skills analyzes required capabilities based on task goals, searches available skills, and filters the best options. When multiple skills are needed, it suggests execution order and setup instructions to help you quickly find and enable the right skills.",
   "category": "meta",
   "tags": ["skills", "discovery", "recommendation", "meta-tool"],
   "version": "1.0.0",

@@ -1,9 +1,21 @@
 {
   "name": "English",
   "tagline": "Agent default template (Pi Coding Agent) — defaults to OpenRouter / DeepSeek V4 Flash",
-  "description": "Agent default template, now powered by Pi Coding Agent. Each Agent (GitHub Issue) can pick its own provider and model, with API keys managed per provider. Defaults to OpenRouter and DeepSeek V4 Flash, while preserving the multi-provider lineup: Cloudflare, Anthropic, OpenAI, Gemini, Groq, OpenRouter, and Ollama Cloud.",
+  "description": "Agent default template, now powered by Pi Coding Agent. Each Agent (GitHub Issue) can pick its own provider and model, with API keys managed per provider. Defaults to OpenRouter and DeepSeek V4 Flash, while preserving the multi-provider lineup: Cloudflare, Anthropic, OpenAI, Gemini, OpenRouter, and Ollama Cloud.",
   "category": "ai",
-  "tags": ["default", "en", "english", "pi", "byok", "cloudflare", "anthropic", "openai", "gemini", "groq", "openrouter", "ollama"],
+  "tags": [
+    "default",
+    "en",
+    "english",
+    "pi",
+    "byok",
+    "cloudflare",
+    "anthropic",
+    "openai",
+    "gemini",
+    "openrouter",
+    "ollama"
+  ],
   "version": "1.0.0",
   "support_url": "https://github.com/getfde-admin/myagent-toolkit/issues",
   "homepage": "https://github.com/getfde-admin/myagent-toolkit",
@@ -22,15 +34,34 @@
       "secretName": "GEMINI_API_KEY",
       "defaultModel": "gemini-3.5-flash",
       "models": [
-        { "value": "gemini-3.5-flash",             "label": "Gemini 3.5 Flash ⭐" },
-        { "value": "gemini-3.5-pro",               "label": "Gemini 3.5 Pro" },
-        { "value": "gemini-3.1-pro",               "label": "Gemini 3.1 Pro" },
-        { "value": "gemini-3.1-flash-lite-preview", "label": "Gemini 3.1 Flash Lite (Preview)" },
-        { "value": "gemini-3-flash-preview",        "label": "Gemini 3 Flash (Preview)" },
-        { "value": "gemini-3-pro-preview",          "label": "Gemini 3 Pro (Preview)" },
-        { "value": "gemini-2.5-pro",               "label": "Gemini 2.5 Pro (legacy)" },
-        { "value": "gemini-2.5-flash",             "label": "Gemini 2.5 Flash (legacy)" },
-        { "value": "gemini-2.0-flash",             "label": "Gemini 2.0 Flash (legacy)" }
+        {
+          "value": "gemini-3.6-flash",
+          "label": "Gemini 3.6 Flash (free) ⭐"
+        },
+        {
+          "value": "gemini-3.5-flash",
+          "label": "Gemini 3.5 Flash (free)"
+        },
+        {
+          "value": "gemini-3.1-flash-lite",
+          "label": "Gemini 3.1 Flash-Lite (free)"
+        },
+        {
+          "value": "gemini-3-flash-preview",
+          "label": "Gemini 3 Flash Preview (free)"
+        },
+        {
+          "value": "gemini-3.1-pro-preview",
+          "label": "Gemini 3.1 Pro Preview"
+        },
+        {
+          "value": "gemini-2.5-flash",
+          "label": "Gemini 2.5 Flash (free)"
+        },
+        {
+          "value": "gemini-2.0-flash",
+          "label": "Gemini 2.0 Flash (free)"
+        }
       ]
     },
     {
@@ -40,12 +71,30 @@
       "secretName": "ANTHROPIC_API_KEY",
       "defaultModel": "claude-sonnet-5",
       "models": [
-        { "value": "claude-sonnet-5",   "label": "Claude Sonnet 5 ⭐" },
-        { "value": "claude-fable-5",    "label": "Claude Fable 5" },
-        { "value": "claude-opus-4-8",   "label": "Claude Opus 4.8" },
-        { "value": "claude-haiku-4-5",  "label": "Claude Haiku 4.5" },
-        { "value": "claude-sonnet-4-6", "label": "Claude Sonnet 4.6 (legacy)" },
-        { "value": "claude-opus-4-7",   "label": "Claude Opus 4.7 (legacy)" }
+        {
+          "value": "claude-sonnet-5",
+          "label": "Claude Sonnet 5 ⭐"
+        },
+        {
+          "value": "claude-fable-5",
+          "label": "Claude Fable 5"
+        },
+        {
+          "value": "claude-opus-4-8",
+          "label": "Claude Opus 4.8"
+        },
+        {
+          "value": "claude-haiku-4-5",
+          "label": "Claude Haiku 4.5"
+        },
+        {
+          "value": "claude-sonnet-4-6",
+          "label": "Claude Sonnet 4.6 (legacy)"
+        },
+        {
+          "value": "claude-opus-4-7",
+          "label": "Claude Opus 4.7 (legacy)"
+        }
       ]
     },
     {
@@ -55,32 +104,34 @@
       "secretName": "OPENAI_API_KEY",
       "defaultModel": "gpt-5.4-mini",
       "models": [
-        { "value": "gpt-5.4-mini",    "label": "GPT-5.4 Mini ⭐" },
-        { "value": "gpt-5.4",         "label": "GPT-5.4" },
-        { "value": "gpt-5.5",         "label": "GPT-5.5" },
-        { "value": "gpt-5.4-nano",    "label": "GPT-5.4 Nano" },
-        { "value": "gpt-5.3-codex",   "label": "GPT-5.3 Codex" },
-        { "value": "gpt-5-mini",      "label": "GPT-5 Mini (legacy)" },
-        { "value": "gpt-4.1",         "label": "GPT-4.1 (legacy)" }
-      ]
-    },
-    {
-      "id": "groq",
-      "label": "Groq",
-      "description": "Use the Groq high-speed inference API. Requires GROQ_API_KEY.",
-      "secretName": "GROQ_API_KEY",
-      "defaultModel": "llama-3.3-70b-versatile",
-      "models": [
-        { "value": "llama-3.3-70b-versatile",                    "label": "Llama 3.3 70B ⭐" },
-        { "value": "openai/gpt-oss-120b",                        "label": "GPT OSS 120B" },
-        { "value": "groq/compound",                              "label": "Groq Compound" },
-        { "value": "moonshotai/kimi-k2-instruct",                "label": "Kimi K2 Instruct" },
-        { "value": "moonshotai/kimi-k2-instruct-0905",           "label": "Kimi K2 Instruct 0905" },
-        { "value": "meta-llama/llama-4-maverick-17b-128e-instruct", "label": "Llama 4 Maverick 17B" },
-        { "value": "meta-llama/llama-4-scout-17b-16e-instruct",  "label": "Llama 4 Scout 17B" },
-        { "value": "qwen/qwen3-32b",                             "label": "Qwen3 32B" },
-        { "value": "deepseek-r1-distill-llama-70b",              "label": "DeepSeek R1 Distill 70B" },
-        { "value": "llama-3.1-8b-instant",                       "label": "Llama 3.1 8B Instant" }
+        {
+          "value": "gpt-5.4-mini",
+          "label": "GPT-5.4 Mini ⭐"
+        },
+        {
+          "value": "gpt-5.4",
+          "label": "GPT-5.4"
+        },
+        {
+          "value": "gpt-5.5",
+          "label": "GPT-5.5"
+        },
+        {
+          "value": "gpt-5.4-nano",
+          "label": "GPT-5.4 Nano"
+        },
+        {
+          "value": "gpt-5.3-codex",
+          "label": "GPT-5.3 Codex"
+        },
+        {
+          "value": "gpt-5-mini",
+          "label": "GPT-5 Mini (legacy)"
+        },
+        {
+          "value": "gpt-4.1",
+          "label": "GPT-4.1 (legacy)"
+        }
       ]
     },
     {
@@ -90,32 +141,110 @@
       "secretName": "CLOUDFLARE_AI_API_TOKEN",
       "defaultModel": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
       "models": [
-        { "value": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",      "label": "Llama 3.3 70B FP8 ⭐" },
-        { "value": "@cf/meta/llama-4-scout-17b-16e-instruct",       "label": "Llama 4 Scout 17B" },
-        { "value": "@cf/meta/llama-3.2-11b-vision-instruct",        "label": "Llama 3.2 11B Vision" },
-        { "value": "@cf/meta/llama-3.2-3b-instruct",                "label": "Llama 3.2 3B" },
-        { "value": "@cf/meta/llama-3.2-1b-instruct",               "label": "Llama 3.2 1B" },
-        { "value": "@cf/meta/llama-3.1-8b-instruct-fp8",            "label": "Llama 3.1 8B FP8" },
-        { "value": "@cf/meta/llama-guard-3-8b",                     "label": "Llama Guard 3 8B" },
-        { "value": "@cf/meta-llama/llama-2-7b-chat-hf-lora",        "label": "Llama 2 7B Chat (LoRA)" },
-        { "value": "@cf/moonshotai/kimi-k2.6",                      "label": "Kimi K2.6" },
-        { "value": "@cf/moonshotai/kimi-k2.7-code",                 "label": "Kimi K2.7 Code" },
-        { "value": "@cf/moonshotai/kimi-k2.5",                      "label": "Kimi K2.5" },
-        { "value": "@cf/openai/gpt-oss-120b",                       "label": "GPT OSS 120B" },
-        { "value": "@cf/openai/gpt-oss-20b",                        "label": "GPT OSS 20B" },
-        { "value": "@cf/google/gemma-4-26b-a4b-it",                 "label": "Gemma 4 26B" },
-        { "value": "@cf/google/gemma-2b-it-lora",                   "label": "Gemma 2B (LoRA)" },
-        { "value": "@cf/google/gemma-7b-it-lora",                   "label": "Gemma 7B (LoRA)" },
-        { "value": "@cf/aisingapore/gemma-sea-lion-v4-27b-it",      "label": "SEA-LION 27B" },
-        { "value": "@cf/zai-org/glm-4.7-flash",                     "label": "GLM 4.7 Flash" },
-        { "value": "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b",  "label": "DeepSeek R1 Distill 32B" },
-        { "value": "@cf/nvidia/nemotron-3-120b-a12b",               "label": "Nemotron 3 120B" },
-        { "value": "@cf/mistralai/mistral-small-3.1-24b-instruct", "label": "Mistral Small 3.1 24B" },
-        { "value": "@cf/mistral/mistral-7b-instruct-v0.2-lora",     "label": "Mistral 7B (LoRA)" },
-        { "value": "@cf/ibm-granite/granite-4.0-h-micro",           "label": "Granite 4.0 H Micro" },
-        { "value": "@cf/qwen/qwen2.5-coder-32b-instruct",           "label": "Qwen2.5 Coder 32B" },
-        { "value": "@cf/qwen/qwen3-30b-a3b-fp8",                    "label": "Qwen3 30B A3B" },
-        { "value": "@cf/qwen/qwq-32b",                              "label": "QwQ 32B" }
+        {
+          "value": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+          "label": "Llama 3.3 70B FP8 ⭐"
+        },
+        {
+          "value": "@cf/meta/llama-4-scout-17b-16e-instruct",
+          "label": "Llama 4 Scout 17B"
+        },
+        {
+          "value": "@cf/meta/llama-3.2-11b-vision-instruct",
+          "label": "Llama 3.2 11B Vision"
+        },
+        {
+          "value": "@cf/meta/llama-3.2-3b-instruct",
+          "label": "Llama 3.2 3B"
+        },
+        {
+          "value": "@cf/meta/llama-3.2-1b-instruct",
+          "label": "Llama 3.2 1B"
+        },
+        {
+          "value": "@cf/meta/llama-3.1-8b-instruct-fp8",
+          "label": "Llama 3.1 8B FP8"
+        },
+        {
+          "value": "@cf/meta/llama-guard-3-8b",
+          "label": "Llama Guard 3 8B"
+        },
+        {
+          "value": "@cf/meta-llama/llama-2-7b-chat-hf-lora",
+          "label": "Llama 2 7B Chat (LoRA)"
+        },
+        {
+          "value": "@cf/moonshotai/kimi-k2.6",
+          "label": "Kimi K2.6"
+        },
+        {
+          "value": "@cf/moonshotai/kimi-k2.7-code",
+          "label": "Kimi K2.7 Code"
+        },
+        {
+          "value": "@cf/moonshotai/kimi-k2.5",
+          "label": "Kimi K2.5"
+        },
+        {
+          "value": "@cf/openai/gpt-oss-120b",
+          "label": "GPT OSS 120B"
+        },
+        {
+          "value": "@cf/openai/gpt-oss-20b",
+          "label": "GPT OSS 20B"
+        },
+        {
+          "value": "@cf/google/gemma-4-26b-a4b-it",
+          "label": "Gemma 4 26B"
+        },
+        {
+          "value": "@cf/google/gemma-2b-it-lora",
+          "label": "Gemma 2B (LoRA)"
+        },
+        {
+          "value": "@cf/google/gemma-7b-it-lora",
+          "label": "Gemma 7B (LoRA)"
+        },
+        {
+          "value": "@cf/aisingapore/gemma-sea-lion-v4-27b-it",
+          "label": "SEA-LION 27B"
+        },
+        {
+          "value": "@cf/zai-org/glm-4.7-flash",
+          "label": "GLM 4.7 Flash"
+        },
+        {
+          "value": "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b",
+          "label": "DeepSeek R1 Distill 32B"
+        },
+        {
+          "value": "@cf/nvidia/nemotron-3-120b-a12b",
+          "label": "Nemotron 3 120B"
+        },
+        {
+          "value": "@cf/mistralai/mistral-small-3.1-24b-instruct",
+          "label": "Mistral Small 3.1 24B"
+        },
+        {
+          "value": "@cf/mistral/mistral-7b-instruct-v0.2-lora",
+          "label": "Mistral 7B (LoRA)"
+        },
+        {
+          "value": "@cf/ibm-granite/granite-4.0-h-micro",
+          "label": "Granite 4.0 H Micro"
+        },
+        {
+          "value": "@cf/qwen/qwen2.5-coder-32b-instruct",
+          "label": "Qwen2.5 Coder 32B"
+        },
+        {
+          "value": "@cf/qwen/qwen3-30b-a3b-fp8",
+          "label": "Qwen3 30B A3B"
+        },
+        {
+          "value": "@cf/qwen/qwq-32b",
+          "label": "QwQ 32B"
+        }
       ]
     },
     {
@@ -126,14 +255,38 @@
       "secretName": "OPENROUTER_API_KEY",
       "defaultModel": "deepseek/deepseek-v4-flash",
       "models": [
-        { "value": "deepseek/deepseek-v4-flash",        "label": "DeepSeek V4 Flash ⭐" },
-        { "value": "openai/gpt-5.5",                    "label": "GPT-5.5 (OR)" },
-        { "value": "anthropic/claude-fable-5",          "label": "Claude Fable 5 (OR)" },
-        { "value": "google/gemini-3.1-pro-preview",     "label": "Gemini 3.1 Pro (OR)" },
-        { "value": "openai/gpt-oss-120b:free",          "label": "GPT OSS 120B (free)" },
-        { "value": "google/gemma-4-31b-it:free",        "label": "Gemma 4 31B (free)" },
-        { "value": "moonshotai/kimi-k2.6:free",         "label": "Kimi K2.6 (free)" },
-        { "value": "qwen/qwen3-coder:free",             "label": "Qwen3 Coder (free)" }
+        {
+          "value": "deepseek/deepseek-v4-flash",
+          "label": "DeepSeek V4 Flash ⭐"
+        },
+        {
+          "value": "openai/gpt-5.5",
+          "label": "GPT-5.5 (OR)"
+        },
+        {
+          "value": "anthropic/claude-fable-5",
+          "label": "Claude Fable 5 (OR)"
+        },
+        {
+          "value": "google/gemini-3.1-pro-preview",
+          "label": "Gemini 3.1 Pro (OR)"
+        },
+        {
+          "value": "openai/gpt-oss-120b:free",
+          "label": "GPT OSS 120B (free)"
+        },
+        {
+          "value": "google/gemma-4-31b-it:free",
+          "label": "Gemma 4 31B (free)"
+        },
+        {
+          "value": "moonshotai/kimi-k2.6:free",
+          "label": "Kimi K2.6 (free)"
+        },
+        {
+          "value": "qwen/qwen3-coder:free",
+          "label": "Qwen3 Coder (free)"
+        }
       ]
     },
     {
@@ -143,25 +296,82 @@
       "secretName": "OLLAMA_API_KEY",
       "defaultModel": "kimi-k2.6",
       "models": [
-        { "value": "kimi-k2.6",              "label": "Kimi K2.6 ⭐" },
-        { "value": "kimi-k3",                "label": "Kimi K3" },
-        { "value": "kimi-k2.7-code",         "label": "Kimi K2.7 Code" },
-        { "value": "kimi-k2.5",              "label": "Kimi K2.5" },
-        { "value": "glm-5.2",                "label": "GLM-5.2" },
-        { "value": "glm-5.1",                "label": "GLM-5.1" },
-        { "value": "deepseek-v4-pro",        "label": "DeepSeek-V4-Pro" },
-        { "value": "deepseek-v4-flash",      "label": "DeepSeek-V4-Flash" },
-        { "value": "minimax-m2.7",           "label": "MiniMax-M2.7" },
-        { "value": "minimax-m2.5",           "label": "MiniMax-M2.5" },
-        { "value": "minimax-m3",             "label": "MiniMax-M3" },
-        { "value": "qwen3.5:397b",           "label": "Qwen3.5 397B" },
-        { "value": "mistral-large-3:675b",   "label": "Mistral Large 3 675B" },
-        { "value": "nemotron-3-super",       "label": "Nemotron-3-Super" },
-        { "value": "nemotron-3-ultra",       "label": "Nemotron-3-Ultra" },
-        { "value": "nemotron-3-nano:30b",    "label": "Nemotron-3-Nano 30B" },
-        { "value": "gpt-oss:120b",           "label": "GPT-OSS 120B" },
-        { "value": "gpt-oss:20b",            "label": "GPT-OSS 20B" },
-        { "value": "gemma4:31b",             "label": "Gemma4 31B" }
+        {
+          "value": "kimi-k2.6",
+          "label": "Kimi K2.6 ⭐"
+        },
+        {
+          "value": "kimi-k3",
+          "label": "Kimi K3"
+        },
+        {
+          "value": "kimi-k2.7-code",
+          "label": "Kimi K2.7 Code"
+        },
+        {
+          "value": "kimi-k2.5",
+          "label": "Kimi K2.5"
+        },
+        {
+          "value": "glm-5.2",
+          "label": "GLM-5.2"
+        },
+        {
+          "value": "glm-5.1",
+          "label": "GLM-5.1"
+        },
+        {
+          "value": "deepseek-v4-pro",
+          "label": "DeepSeek-V4-Pro"
+        },
+        {
+          "value": "deepseek-v4-flash",
+          "label": "DeepSeek-V4-Flash"
+        },
+        {
+          "value": "minimax-m2.7",
+          "label": "MiniMax-M2.7"
+        },
+        {
+          "value": "minimax-m2.5",
+          "label": "MiniMax-M2.5"
+        },
+        {
+          "value": "minimax-m3",
+          "label": "MiniMax-M3"
+        },
+        {
+          "value": "qwen3.5:397b",
+          "label": "Qwen3.5 397B"
+        },
+        {
+          "value": "mistral-large-3:675b",
+          "label": "Mistral Large 3 675B"
+        },
+        {
+          "value": "nemotron-3-super",
+          "label": "Nemotron-3-Super"
+        },
+        {
+          "value": "nemotron-3-ultra",
+          "label": "Nemotron-3-Ultra"
+        },
+        {
+          "value": "nemotron-3-nano:30b",
+          "label": "Nemotron-3-Nano 30B"
+        },
+        {
+          "value": "gpt-oss:120b",
+          "label": "GPT-OSS 120B"
+        },
+        {
+          "value": "gpt-oss:20b",
+          "label": "GPT-OSS 20B"
+        },
+        {
+          "value": "gemma4:31b",
+          "label": "Gemma4 31B"
+        }
       ]
     }
   ]

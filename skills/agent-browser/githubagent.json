@@ -1,7 +1,7 @@
 {
   "name": "Agent Browser",
-  "tagline": "AI 驱动的浏览器自动化工具，操作网页、填表单、截图、抓资料",
-  "description": "Agent Browser 透过 agent-browser CLI 进行浏览器自动化操作，支援开启网站、填写表单、点击按钮、撷取截图与抓取页面资料。采用 snapshot → interact → re-snapshot 工作流程，适合网页测试、资料撷取与自动化操作情境。",
+  "tagline": "AI-driven browser automation tool to interact with web pages, fill forms, take screenshots, and scrape data",
+  "description": "Agent Browser enables browser automation via the agent-browser CLI, supporting opening websites, filling out forms, clicking buttons, capturing screenshots, and scraping page data. Following a snapshot → interact → re-snapshot workflow, it is ideal for web testing, data extraction, and automated workflows.",
   "category": "automation",
   "tags": ["browser", "automation", "scraping", "screenshot", "web-testing"],
   "version": "1.0.0",

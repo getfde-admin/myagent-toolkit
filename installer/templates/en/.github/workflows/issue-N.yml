@@ -102,7 +102,6 @@ jobs:
           SECRET_CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           SECRET_ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           SECRET_OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          SECRET_GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           SECRET_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           SECRET_OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           SECRET_OLLAMA_API_KEY: ${{ secrets.OLLAMA_API_KEY }}
@@ -124,9 +123,6 @@ jobs:
               ;;
             openai)
               echo "OPENAI_API_KEY=${SECRET_OPENAI_API_KEY}" >> "$GITHUB_ENV"
-              ;;
-            groq)
-              echo "GROQ_API_KEY=${SECRET_GROQ_API_KEY}" >> "$GITHUB_ENV"
               ;;
             google)
               echo "GEMINI_API_KEY=${SECRET_GEMINI_API_KEY}" >> "$GITHUB_ENV"
@@ -203,6 +199,45 @@ jobs:
           if [[ "${PI_PROVIDER}" == "ollama-cloud" ]]; then
             echo "Installing pi-ollama-cloud extension..."
             npx -y "${PI_CODING_AGENT_PKG}@${PI_CODING_AGENT_VERSION}" install npm:pi-ollama-cloud
+          fi
+
+          # Cloudflare is the only provider whose baseUrl embeds an env reference, but
+          # Pi only interpolates $ENV_VAR in apiKey/headers (not baseUrl), so it would
+          # send a literal "$CLOUDFLARE_ACCOUNT_ID" in the path and get a 404.
+          # Rewrite the placeholder in .pi/models.json with the real account id here,
+          # after all git resets above, so Pi sees a fully-resolved baseUrl.
+          if [[ "${PI_PROVIDER}" == "cloudflare-workers-ai" && -f .pi/models.json ]]; then
+            if [[ -z "$CLOUDFLARE_ACCOUNT_ID" ]]; then
+              echo "CLOUDFLARE_ACCOUNT_ID is missing; cannot build Cloudflare Workers AI baseUrl." >&2
+              exit 1
+            fi
+            sed -i "s|\\\$CLOUDFLARE_ACCOUNT_ID|${CLOUDFLARE_ACCOUNT_ID}|g" .pi/models.json
+            echo "Rewrote Cloudflare account id placeholder in .pi/models.json"
+          fi
+
+          # Validate that the selected model in .pi/settings.json actually exists for the
+          # selected provider. The admin UI can leave a stale defaultModel (e.g. an OpenRouter
+          # model id like "deepseek/deepseek-v4-flash") while the provider is cloudflare,
+          # which makes the provider return a 404 / empty result. If the model id is missing
+          # from that provider's models.json list, fall back to the provider's first model.
+          if [[ -f .pi/settings.json && -f .pi/models.json ]]; then
+            CFG_PROVIDER=$(jq -r '.defaultProvider // ""' .pi/settings.json)
+            CFG_MODEL=$(jq -r '.defaultModel // ""' .pi/settings.json)
+            if [[ -n "$CFG_PROVIDER" && -n "$CFG_MODEL" ]]; then
+              if jq -e --arg p "$CFG_PROVIDER" --arg m "$CFG_MODEL" \
+                'any(.providers[$p].models[]?.id; . == $m)' .pi/models.json > /dev/null; then
+                echo "Model ${CFG_MODEL} is valid for provider ${CFG_PROVIDER}."
+              else
+                FALLBACK_MODEL=$(jq -r --arg p "$CFG_PROVIDER" '.providers[$p].models[0].id // ""' .pi/models.json)
+                if [[ -n "$FALLBACK_MODEL" ]]; then
+                  jq --arg m "$FALLBACK_MODEL" '.defaultModel = $m' .pi/settings.json > .pi/settings.tmp.json \
+                    && mv .pi/settings.tmp.json .pi/settings.json
+                  echo "Model ${CFG_MODEL} is NOT valid for provider ${CFG_PROVIDER}. Fallback to ${FALLBACK_MODEL}."
+                else
+                  echo "No valid model found for provider ${CFG_PROVIDER} in models.json." >&2
+                fi
+              fi
+            fi
           fi
 
           # Pi reads settings.json and models.json from the template via PI_CODING_AGENT_DIR=.pi

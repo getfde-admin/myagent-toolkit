@@ -1,7 +1,7 @@
 {
   "name": "Gemini Audio Transcriber",
-  "tagline": "音讯转繁体中文逐字稿，自动辨识多位说话者",
-  "description": "Gemini Audio Transcriber 使用 Gemini Interactions API 的原生音讯理解能力，将音讯档案转录为繁体中文逐字稿。支援多种格式（MP3、WAV、OGG、FLAC 等），可自动标记多位说话者，输出可搭配 meeting-note-formatter 整理为结构化会议纪录。",
+  "tagline": "Audio transcription with automatic multi-speaker diarization and recognition",
+  "description": "Gemini Audio Transcriber leverages native audio understanding via the Gemini Interactions API to transcribe audio files into accurate verbatim transcripts. It supports multiple formats (MP3, WAV, OGG, FLAC, etc.) and speaker diarization, producing output that pairs seamlessly with meeting-note formatters for structured meeting summaries.",
   "category": "content",
   "tags": ["gemini", "audio", "transcription", "speech-to-text", "meeting-notes"],
   "version": "1.0.0",
