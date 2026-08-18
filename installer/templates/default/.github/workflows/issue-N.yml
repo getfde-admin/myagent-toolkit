@@ -277,6 +277,45 @@ jobs:
             fi
           fi
 
+      # Verify that every artifacts/<id>/<file> reference in result.md actually
+      # exists on disk. Fails the job if Pi claimed a file but never produced
+      # it (the "dead link" failure mode). Runs before `Push result` so a
+      # missing file blocks the commit and surfaces via error-handler-action.
+      - name: Verify artifacts
+        id: verify
+        if: steps.pi_task.outcome != 'cancelled'
+        shell: bash
+        run: |
+          set -uo pipefail
+          CID="${{ env.COMMENT_ID }}"
+          RESULT="artifacts/${CID}/result.md"
+          LOG="artifacts/${CID}/verify.log"
+          mkdir -p "artifacts/${CID}"
+          : > "$LOG"
+          if [ ! -f "$RESULT" ]; then
+            echo "No result.md — nothing to verify."
+            exit 0
+          fi
+          # Match every artifacts/<digits>/<filename> reference, whether
+          # relative, backtick-quoted, or in a github.com/.../blob/<branch>/...?raw=true URL.
+          grep -oE 'artifacts/[0-9]+/[A-Za-z0-9._/-]+' "$RESULT" 2>/dev/null \
+            | sort -u \
+            | while IFS= read -r p; do
+                path="${p%%\?*}"
+                if [ -e "$path" ]; then
+                  echo "OK   $path"
+                else
+                  echo "MISS $path"
+                  echo "Missing artifact claimed in result.md: $path" >> "$LOG"
+                fi
+              done
+          if [ -s "$LOG" ]; then
+            echo "::error::Artifacts claimed in result.md but missing on disk:"
+            sed 's/^/  /' "$LOG"
+            exit 1
+          fi
+          echo "All claimed artifacts present."
+
       - name: Push result
         if: always()
         shell: bash
@@ -292,7 +331,7 @@ jobs:
           git push origin "issue-${{ env.ISSUE_NUMBER }}" --force
 
       - name: Task failure handling
-        if: failure() && steps.pi_task.conclusion == 'failure'
+        if: failure() && (steps.pi_task.conclusion == 'failure' || steps.verify.conclusion == 'failure')
         uses: getfde-admin/myagent-toolkit/actions/error-handler-action@v1
         with:
           output_file: artifacts/${{ env.COMMENT_ID }}/error.log

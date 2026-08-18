@@ -1,0 +1,17 @@
+{
+  "name": "pdf-creator-skill",
+  "version": "0.1.0",
+  "description": "Markdown / JSON spec → .pdf binary via pdfkit (pure JS, no system deps, no API key)",
+  "type": "module",
+  "scripts": {
+    "build": "npx -y bun build src/build.js --outfile scripts/build.js --target node --minify",
+    "build:dev": "npx -y bun build src/build.js --outfile scripts/build.js --target node",
+    "pdf": "node scripts/build.js"
+  },
+  "dependencies": {
+    "pdfkit": "^0.15.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

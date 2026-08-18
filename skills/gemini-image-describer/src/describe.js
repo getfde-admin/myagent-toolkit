@@ -195,7 +195,7 @@ async function main() {
   console.error("请稍候，Gemini 正在处理图片...\n");
 
   const response = await client.models.generateContent({
-    model: "gemini-2.5-flash",
+    model: process.env.GEMINI_IMAGE_MODEL || "gemini-3.5-flash",
     contents: [
       {
         role: "user",

@@ -1,0 +1,11 @@
+{
+  "name": "PDF Creator",
+  "tagline": "Markdown / JSON spec to real .pdf binary via pdfkit — no API key, no system deps",
+  "description": "PDF Creator renders a Markdown document or a JSON spec into a real .pdf binary file using pdfkit (pure JavaScript, no system dependencies, no API key). It supports headings, paragraphs, nested bullets, blockquotes, code blocks, tables, and page breaks, with automatic CJK font detection for Chinese/Japanese/Korean text. Use it whenever the deliverable should be a PDF / document / report. Output is written to disk so the workflow can commit it into artifacts/.",
+  "category": "content",
+  "tags": ["pdf", "document", "report", "docs", "content"],
+  "version": "0.1.0",
+  "support_url": "https://github.com/getfde-admin/myagent-toolkit/issues",
+  "homepage": "https://github.com/getfde-admin/myagent-toolkit",
+  "requireEnv": []
+}
