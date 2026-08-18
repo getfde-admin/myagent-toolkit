@@ -1,0 +1,11 @@
+{
+  "name": "PPTX Presenter",
+  "tagline": "Markdown / JSON slide spec to real .pptx binary via pptxgenjs — no API key, no system deps",
+  "description": "PPTX Presenter renders a Markdown deck or a JSON slide spec into a real PowerPoint .pptx binary file using pptxgenjs (pure JavaScript, no system dependencies, no API key). It supports light/dark themes, 16:9 and 4:3 layouts, section slides, nested bullets, and speaker notes. Use it whenever the deliverable should be a slide deck / presentation / .pptx file. Output is written to disk so the workflow can commit it into artifacts/.",
+  "category": "content",
+  "tags": ["pptx", "powerpoint", "slides", "presentation", "docs", "report"],
+  "version": "0.1.0",
+  "support_url": "https://github.com/getfde-admin/myagent-toolkit/issues",
+  "homepage": "https://github.com/getfde-admin/myagent-toolkit",
+  "requireEnv": []
+}
