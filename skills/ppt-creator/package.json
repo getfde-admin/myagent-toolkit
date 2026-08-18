@@ -1,0 +1,17 @@
+{
+  "name": "ppt-creator-skill",
+  "version": "0.1.0",
+  "description": "Markdown / JSON slide spec → .pptx binary via pptxgenjs",
+  "type": "module",
+  "scripts": {
+    "build": "npx -y bun build src/build.js --outfile scripts/build.js --target node --minify",
+    "build:dev": "npx -y bun build src/build.js --outfile scripts/build.js --target node",
+    "pptx": "node scripts/build.js"
+  },
+  "dependencies": {
+    "pptxgenjs": "^3.12.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
