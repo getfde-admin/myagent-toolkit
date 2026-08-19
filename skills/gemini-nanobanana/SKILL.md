@@ -78,7 +78,7 @@ Assuming `GITHUB_REPO=test/baoagent-5`, `BRANCH=issue-3`, `COMMENT_ID=4153431460
 ## Execution pattern
 - Default to Node.js wrapper flows for regular usage, especially when payload control is needed.
 - Quick path (agent runs from workspace root):
-  - `node ".agents/skills/gemini-nanobanana/scripts/gemini-nanobanana-cli.js" --prompt "..." --output-dir "artifacts/${COMMENT_ID:-nanobanana-output}"`
+  - `node ".pi/skills/gemini-nanobanana/scripts/gemini-nanobanana-cli.js" --prompt "..." --output-dir "artifacts/${COMMENT_ID:-nanobanana-output}"`
   - Add references via repeated `-i/--image` (up to 14).
   - Enable grounding via `--google-search` when prompt needs fresh web context.
 - The API key (`GEMINI_NANOBANANA_API_KEY` / `GEMINI_API_KEY`) is injected by the workflow environment; do **not** hardcode it. The CLI reads it automatically from the environment.

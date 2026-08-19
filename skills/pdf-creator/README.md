@@ -10,7 +10,7 @@ LLM agents can reliably write text but not binary files. This skill turns the ag
 
 ```sh
 # from repo root
-node .agents/skills/pdf-creator/scripts/build.js report.md --out artifacts/123/report.pdf
+node .pi/skills/pdf-creator/scripts/build.js report.md --out artifacts/123/report.pdf
 ```
 
 See `SKILL.md` for the full Markdown / JSON input format, options, and path-safety rules.

@@ -18,20 +18,20 @@ description: Use this skill when a user wants a comprehensive research report on
 ### 命令列引数
 
 ```bash
-node .agents/skills/gemini-deep-researcher/scripts/research.js "AI 晶片市场趋势"
+node .pi/skills/gemini-deep-researcher/scripts/research.js "AI 晶片市场趋势"
 ```
 
 ### 管线输入
 
 ```bash
-echo "量子运算对密码学的影响" | node .agents/skills/gemini-deep-researcher/scripts/research.js
+echo "量子运算对密码学的影响" | node .pi/skills/gemini-deep-researcher/scripts/research.js
 ```
 
 ### 在其他脚本中使用
 
 ```bash
 TOPIC="台湾半导体产业供应链分析"
-node .agents/skills/gemini-deep-researcher/scripts/research.js "$TOPIC" > report.md
+node .pi/skills/gemini-deep-researcher/scripts/research.js "$TOPIC" > report.md
 ```
 
 ## Dry Run
@@ -39,7 +39,7 @@ node .agents/skills/gemini-deep-researcher/scripts/research.js "$TOPIC" > report
 设定 `DEEP_RESEARCHER_DRY_RUN=1` 可在不呼叫 API 的情况下预览将送出的请求：
 
 ```bash
-DEEP_RESEARCHER_DRY_RUN=1 node .agents/skills/gemini-deep-researcher/scripts/research.js "测试主题"
+DEEP_RESEARCHER_DRY_RUN=1 node .pi/skills/gemini-deep-researcher/scripts/research.js "测试主题"
 ```
 
 输出为 JSON，包含 `agent`、`background`、`prompt`、`topic` 栏位。
@@ -62,7 +62,7 @@ stderr 输出进度讯息（启动、轮询进度、完成）。
 ⚠️ skill 脚本位于 **repo 根目录**。若 cwd 不在 repo root，先独立执行 `git rev-parse --show-toplevel` 取得路径，再 `cd` 到该路径后执行。禁止使用 `$(...)` 语法。
 
 1. 确认使用者提供了研究主题（文字）。
-2. 执行 `node .agents/skills/gemini-deep-researcher/scripts/research.js "<主题>"` 并将 stdout 导向档案或直接呈现。
+2. 执行 `node .pi/skills/gemini-deep-researcher/scripts/research.js "<主题>"` 并将 stdout 导向档案或直接呈现。
 3. **注意：此技能使用 Gemini Deep Research agent，通常需要 2–8 分钟才能完成。** 请提前告知使用者需要等待。
 4. 进度讯息会输出到 stderr，可据此回报等待状态。
 5. 完成后，stdout 的内容即为完整研究报告（Markdown 格式）。

@@ -68,7 +68,7 @@ jobs:
           set -euo pipefail
 
           TARGET_BRANCH="issue-${ISSUE_NUMBER}"
-          SKILL_PATH=".agents/skills/${SKILL_NAME}"
+          SKILL_PATH=".pi/skills/${SKILL_NAME}"
 
           git config user.name "${AUTOMATION_GIT_USER_NAME}"
           git config user.email "${AUTOMATION_GIT_USER_EMAIL}"

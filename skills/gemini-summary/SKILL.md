@@ -34,35 +34,35 @@ description: Use this skill when a user provides a web page URL, PDF file, video
 
 直接执行预建好的脚本，不需要先安装依赖：
 
-> ⚠️ **路径安全**：skill 脚本位于 **repo 根目录**的 `.agents/skills/` 下。若 cwd 不在 repo root，请先执行 `git rev-parse --show-toplevel` 取得绝对路径，再 `cd` 到该路径后执行。**禁止**在指令中使用 `$(...)` 语法（会被 Copilot CLI 安全过滤器挡下）。
+> ⚠️ **路径安全**：skill 脚本位于 **repo 根目录**的 `.pi/skills/` 下。若 cwd 不在 repo root，请先执行 `git rev-parse --show-toplevel` 取得绝对路径，再 `cd` 到该路径后执行。**禁止**在指令中使用 `$(...)` 语法（会被 Copilot CLI 安全过滤器挡下）。
 
 ```sh
-node .agents/skills/gemini-summary/scripts/summarize.js <input>
+node .pi/skills/gemini-summary/scripts/summarize.js <input>
 ```
 
 ### 范例
 
 ```sh
 # 网页摘要
-node .agents/skills/gemini-summary/scripts/summarize.js "https://example.com/posts/agentic-workflows"
+node .pi/skills/gemini-summary/scripts/summarize.js "https://example.com/posts/agentic-workflows"
 
 # PDF 摘要（本地档案）
-node .agents/skills/gemini-summary/scripts/summarize.js "./reports/quarterly.pdf"
+node .pi/skills/gemini-summary/scripts/summarize.js "./reports/quarterly.pdf"
 
 # PDF 摘要（远端 URL）
-node .agents/skills/gemini-summary/scripts/summarize.js "https://example.com/report.pdf"
+node .pi/skills/gemini-summary/scripts/summarize.js "https://example.com/report.pdf"
 
 # 视频摘要（YouTube）
-node .agents/skills/gemini-summary/scripts/summarize.js "https://youtu.be/abc123"
+node .pi/skills/gemini-summary/scripts/summarize.js "https://youtu.be/abc123"
 
 # 视频摘要（本地档案）
-node .agents/skills/gemini-summary/scripts/summarize.js "./clips/demo.mp4"
+node .pi/skills/gemini-summary/scripts/summarize.js "./clips/demo.mp4"
 
 # 音频摘要（本地档案）
-node .agents/skills/gemini-summary/scripts/summarize.js "./recordings/meeting.mp3"
+node .pi/skills/gemini-summary/scripts/summarize.js "./recordings/meeting.mp3"
 
 # 音频摘要（远端 URL）
-node .agents/skills/gemini-summary/scripts/summarize.js "https://example.com/podcast.mp3"
+node .pi/skills/gemini-summary/scripts/summarize.js "https://example.com/podcast.mp3"
 ```
 
 ### 手动指定类型
@@ -70,8 +70,8 @@ node .agents/skills/gemini-summary/scripts/summarize.js "https://example.com/pod
 自动侦测通常足够，但可用 `--type` 覆盖：
 
 ```sh
-node .agents/skills/gemini-summary/scripts/summarize.js --type pdf "https://example.com/download?file=report"
-node .agents/skills/gemini-summary/scripts/summarize.js --type audio "https://example.com/download?file=recording"
+node .pi/skills/gemini-summary/scripts/summarize.js --type pdf "https://example.com/download?file=report"
+node .pi/skills/gemini-summary/scripts/summarize.js --type audio "https://example.com/download?file=recording"
 ```
 
 ### Dry Run
@@ -79,7 +79,7 @@ node .agents/skills/gemini-summary/scripts/summarize.js --type audio "https://ex
 设定 `SUMMARY_DRY_RUN=1` 可在不呼叫 Gemini API 的情况下，预览输入侦测结果（JSON 格式）：
 
 ```sh
-SUMMARY_DRY_RUN=1 node .agents/skills/gemini-summary/scripts/summarize.js "https://youtu.be/abc123"
+SUMMARY_DRY_RUN=1 node .pi/skills/gemini-summary/scripts/summarize.js "https://youtu.be/abc123"
 ```
 
 ## 输出格式
@@ -118,7 +118,7 @@ SUMMARY_DRY_RUN=1 node .agents/skills/gemini-summary/scripts/summarize.js "https
 2. 确认环境中已设定 `GEMINI_API_KEY`。
 3. 执行指令：
    ```sh
-   node .agents/skills/gemini-summary/scripts/summarize.js "<input>"
+   node .pi/skills/gemini-summary/scripts/summarize.js "<input>"
    ```
 4. 脚本会自动侦测输入类型并选择适当的处理方式与模型。
 5. 结果以串流方式输出到 stdout，进度与错误讯息输出到 stderr。
@@ -164,7 +164,7 @@ SUMMARY_DRY_RUN=1 node .agents/skills/gemini-summary/scripts/summarize.js "https
 `scripts/summarize.js` 是已提交的预建可执行产物；`src/summarize.js` 是可维护的原始码。重建方式：
 
 ```sh
-cd .agents/skills/gemini-summary
+cd .pi/skills/gemini-summary
 bun install
 bun run build
 ```

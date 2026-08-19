@@ -18,21 +18,21 @@ description: Use this skill when a user provides an image (local file or URL) an
 直接执行预建置脚本 — **不需要 `npm install` 或其他额外设定**：
 
 ```sh
-node .agents/skills/gemini-image-describer/scripts/describe.js <image-path-or-url>
+node .pi/skills/gemini-image-describer/scripts/describe.js <image-path-or-url>
 ```
 
 ### 范例
 
 ```sh
-GEMINI_API_KEY=your_api_key node .agents/skills/gemini-image-describer/scripts/describe.js "https://example.com/photo.jpg"
+GEMINI_API_KEY=your_api_key node .pi/skills/gemini-image-describer/scripts/describe.js "https://example.com/photo.jpg"
 ```
 
 ```sh
-GEMINI_API_KEY=your_api_key node .agents/skills/gemini-image-describer/scripts/describe.js "./photos/screenshot.png"
+GEMINI_API_KEY=your_api_key node .pi/skills/gemini-image-describer/scripts/describe.js "./photos/screenshot.png"
 ```
 
 ```sh
-GEMINI_API_KEY=your_api_key node .agents/skills/gemini-image-describer/scripts/describe.js "data:image/png;base64,iVBOR..."
+GEMINI_API_KEY=your_api_key node .pi/skills/gemini-image-describer/scripts/describe.js "data:image/png;base64,iVBOR..."
 ```
 
 ## Dry Run
@@ -40,7 +40,7 @@ GEMINI_API_KEY=your_api_key node .agents/skills/gemini-image-describer/scripts/d
 设定 `IMAGE_DESCRIBER_DRY_RUN=1` 可在不呼叫 Gemini API 的情况下，预览解析后的输入 metadata：
 
 ```sh
-IMAGE_DESCRIBER_DRY_RUN=1 node .agents/skills/gemini-image-describer/scripts/describe.js "https://example.com/photo.jpg"
+IMAGE_DESCRIBER_DRY_RUN=1 node .pi/skills/gemini-image-describer/scripts/describe.js "https://example.com/photo.jpg"
 ```
 
 ## 输出格式
@@ -62,7 +62,7 @@ IMAGE_DESCRIBER_DRY_RUN=1 node .agents/skills/gemini-image-describer/scripts/des
 3. **必须**执行描述脚本，并将输出直接写入 `artifacts/{issue-comment-id}/result.md`：
    ```sh
    mkdir -p artifacts/{issue-comment-id}
-   node .agents/skills/gemini-image-describer/scripts/describe.js "<image-path-or-url>" > artifacts/{issue-comment-id}/result.md
+   node .pi/skills/gemini-image-describer/scripts/describe.js "<image-path-or-url>" > artifacts/{issue-comment-id}/result.md
    ```
 4. 若输入为本地档案路径或 `file://` URL，脚本会自动转换为 Base64 data URI。
 5. 读取 `artifacts/{issue-comment-id}/result.md` 并将内容呈现给使用者。
@@ -97,7 +97,7 @@ IMAGE_DESCRIBER_DRY_RUN=1 node .agents/skills/gemini-image-describer/scripts/des
 若需修改脚本，编辑 `src/describe.js` 后重新建置：
 
 ```sh
-cd .agents/skills/gemini-image-describer
+cd .pi/skills/gemini-image-describer
 bun install
 bun build src/describe.js --outfile scripts/describe.js --target node --minify
 ```

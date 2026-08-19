@@ -11,7 +11,7 @@ function printUsage() {
   console.error(
     [
       "用法：",
-      '  node .agents/skills/google-stitch/scripts/generate.js --prompt "<设计描述>" [options]',
+      '  node .pi/skills/google-stitch/scripts/generate.js --prompt "<设计描述>" [options]',
       "",
       "选项：",
       "  --prompt <text>          必填，设计提示词",

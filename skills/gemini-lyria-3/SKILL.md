@@ -17,7 +17,7 @@ required_env:
 
 ## 使用方式
 
-> ⚠️ **路径安全**：skill 脚本位于 **repo 根目录**的 `.agents/skills/` 下。若 cwd 不在 repo root，请先独立执行 `git rev-parse --show-toplevel` 取得绝对路径，再 `cd` 到该路径后执行。**禁止**在指令中使用 `$(...)` 语法（会被 Copilot CLI 安全过滤器挡下）。
+> ⚠️ **路径安全**：skill 脚本位于 **repo 根目录**的 `.pi/skills/` 下。若 cwd 不在 repo root，请先独立执行 `git rev-parse --show-toplevel` 取得绝对路径，再 `cd` 到该路径后执行。**禁止**在指令中使用 `$(...)` 语法（会被 Copilot CLI 安全过滤器挡下）。
 
 脚本透过环境变数接收所有参数：
 
@@ -38,7 +38,7 @@ git rev-parse --show-toplevel
 # 再 cd 到 repo root 后执行：
 PROMPT_FILE="./lyrics.txt" \
 ISSUE_DIR="./music-output" \
-node .agents/skills/gemini-lyria-3/scripts/generate-track.js
+node .pi/skills/gemini-lyria-3/scripts/generate-track.js
 ```
 
 ## 输出格式
@@ -68,7 +68,7 @@ node .agents/skills/gemini-lyria-3/scripts/generate-track.js
 4. 确认环境中已设定 `GEMINI_API_KEY`。
 5. 执行脚本：
    ```sh
-   PROMPT_FILE="./lyrics.txt" ISSUE_DIR="artifacts/${COMMENT_ID:-music-output}" node .agents/skills/gemini-lyria-3/scripts/generate-track.js
+   PROMPT_FILE="./lyrics.txt" ISSUE_DIR="artifacts/${COMMENT_ID:-music-output}" node .pi/skills/gemini-lyria-3/scripts/generate-track.js
    ```
 6. 解析 stdout 中 `Saved: <path>` 行取得生成的音轨路径。
 7. 以 Markdown 连结格式回报每个音轨，加上 `githubagent-artifacts` metadata 供 Telegram relay 使用。

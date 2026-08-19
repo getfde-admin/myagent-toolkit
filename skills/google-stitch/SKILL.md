@@ -22,13 +22,13 @@ description: Use this skill when users want to generate UI mockups, landing page
 直接执行 skill 脚本：
 
 ```sh
-node .agents/skills/google-stitch/scripts/generate.js --prompt "一个现代 SaaS 产品首页，深色主题，含 pricing cards 与 CTA 区块"
+node .pi/skills/google-stitch/scripts/generate.js --prompt "一个现代 SaaS 产品首页，深色主题，含 pricing cards 与 CTA 区块"
 ```
 
 ### 常用范例
 
 ```sh
-node .agents/skills/google-stitch/scripts/generate.js \
+node .pi/skills/google-stitch/scripts/generate.js \
   --prompt "设计一个电商首页 Hero 区块，米白背景、精品感、右侧产品主视觉" \
   --aspect-ratio 16:9 \
   --image-size 2K \
@@ -36,7 +36,7 @@ node .agents/skills/google-stitch/scripts/generate.js \
 ```
 
 ```sh
-GOOGLE_STITCH_DRY_RUN=1 node .agents/skills/google-stitch/scripts/generate.js \
+GOOGLE_STITCH_DRY_RUN=1 node .pi/skills/google-stitch/scripts/generate.js \
   --prompt "手机版登入页，极简、白底、蓝色主按钮"
 ```
 
@@ -67,7 +67,7 @@ stdout 会输出 JSON，例如：
 2. 确认环境中已有 `GEMINI_API_KEY` 或 `GOOGLE_API_KEY`。
 3. 执行时加上 `--output-dir artifacts/{issue-comment-id}`，让输出直接进入正确路径：
    ```sh
-   node .agents/skills/google-stitch/scripts/generate.js --prompt "<user prompt>" --output-dir artifacts/{issue-comment-id}
+   node .pi/skills/google-stitch/scripts/generate.js --prompt "<user prompt>" --output-dir artifacts/{issue-comment-id}
    ```
 4. 若使用者有指定尺寸、比例、模型，分别加上：
    - `--aspect-ratio`

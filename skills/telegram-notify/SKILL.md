@@ -97,7 +97,7 @@ The repository provides `.github/actions/telegram-notify` as a reusable composit
 
 ```bash
 export TELEGRAM_NOTIFY_BOT_TOKEN="your_bot_token"
-bash .agents/skills/telegram-notify/scripts/send-telegram.sh "123456789" "Your message"
+bash .pi/skills/telegram-notify/scripts/send-telegram.sh "123456789" "Your message"
 ```
 
 ## Direct API Call Reference

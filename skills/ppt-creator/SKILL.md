@@ -55,10 +55,10 @@ description: Use this skill when a user asks for a PowerPoint / PPTX / slide dec
 
 ## 使用方式
 
-> ⚠️ **路徑安全**：skill 腳本位於 repo 根目錄的 `.agents/skills/` 下。若 cwd 不在 repo root，請先 `git rev-parse --show-toplevel` 取得絕對路徑，再 `cd` 到該路徑後執行。**禁止**在指令中使用 `$(...)` 語法（會被安全過濾器擋下）。
+> ⚠️ **路徑安全**：skill 腳本位於 repo 根目錄的 `.pi/skills/` 下。若 cwd 不在 repo root，請先 `git rev-parse --show-toplevel` 取得絕對路徑，再 `cd` 到該路徑後執行。**禁止**在指令中使用 `$(...)` 語法（會被安全過濾器擋下）。
 
 ```sh
-node .agents/skills/ppt-creator/scripts/build.js <input.md|input.json> [options]
+node .pi/skills/ppt-creator/scripts/build.js <input.md|input.json> [options]
 ```
 
 ### 選項
@@ -75,13 +75,13 @@ node .agents/skills/ppt-creator/scripts/build.js <input.md|input.json> [options]
 
 ```sh
 # 基本：產生 deck.pptx
-node .agents/skills/ppt-creator/scripts/build.js artifacts/123/deck.md --out artifacts/123/deck.pptx
+node .pi/skills/ppt-creator/scripts/build.js artifacts/123/deck.md --out artifacts/123/deck.pptx
 
 # 深色主題、4:3
-node .agents/skills/ppt-creator/scripts/build.js deck.md --theme dark --layout 4x3
+node .pi/skills/ppt-creator/scripts/build.js deck.md --theme dark --layout 4x3
 
 # 從 stdin 讀
-cat deck.md | node .agents/skills/ppt-creator/scripts/build.js -
+cat deck.md | node .pi/skills/ppt-creator/scripts/build.js -
 ```
 
 腳本會把最終輸出路徑印到 stdout（一行），方便串接。

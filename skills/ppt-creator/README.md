@@ -10,7 +10,7 @@ LLM agents can reliably write text but not binary files. This skill turns the ag
 
 ```sh
 # from repo root
-node .agents/skills/ppt-creator/scripts/build.js deck.md --out artifacts/123/deck.pptx
+node .pi/skills/ppt-creator/scripts/build.js deck.md --out artifacts/123/deck.pptx
 ```
 
 See `SKILL.md` for the full Markdown / JSON input format, options, and path-safety rules.

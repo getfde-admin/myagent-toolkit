@@ -137,7 +137,7 @@ jobs:
           set -euo pipefail
 
           TARGET_BRANCH="issue-${ISSUE_NUMBER}"
-          INSTALL_PATH=".agents/skills/${SKILL_NAME}"
+          INSTALL_PATH=".pi/skills/${SKILL_NAME}"
 
           git config user.name "${AUTOMATION_GIT_USER_NAME}"
           git config user.email "${AUTOMATION_GIT_USER_EMAIL}"
@@ -189,7 +189,7 @@ jobs:
             export SKILL_NAME="${SKILL_NAME}"
             export ISSUE_NUMBER="${ISSUE_NUMBER}"
             export TARGET_BRANCH="issue-${ISSUE_NUMBER}"
-            export INSTALL_PATH=".agents/skills/${SKILL_NAME}"
+            export INSTALL_PATH=".pi/skills/${SKILL_NAME}"
             export REPO_ROOT="$(pwd)"
             export GITHUB_TOKEN="${PUSH_TOKEN}"
             bash "$POST_INSTALL"

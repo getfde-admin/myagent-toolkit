@@ -19,7 +19,7 @@ description: Use this skill when a user provides an audio file (local file or UR
 直接执行预建脚本 — **不需要 `npm install` 或额外设定**：
 
 ```sh
-node .agents/skills/gemini-audio-transcriber/scripts/transcribe.js <audio-path-or-url>
+node .pi/skills/gemini-audio-transcriber/scripts/transcribe.js <audio-path-or-url>
 ```
 
 ### 范例
@@ -27,20 +27,20 @@ node .agents/skills/gemini-audio-transcriber/scripts/transcribe.js <audio-path-o
 远端 URL：
 
 ```sh
-GEMINI_API_KEY=your_api_key node .agents/skills/gemini-audio-transcriber/scripts/transcribe.js "https://example.com/audio/meeting.mp3"
+GEMINI_API_KEY=your_api_key node .pi/skills/gemini-audio-transcriber/scripts/transcribe.js "https://example.com/audio/meeting.mp3"
 ```
 
 本机档案：
 
 ```sh
-GEMINI_API_KEY=your_api_key node .agents/skills/gemini-audio-transcriber/scripts/transcribe.js "./recordings/meeting.m4a"
+GEMINI_API_KEY=your_api_key node .pi/skills/gemini-audio-transcriber/scripts/transcribe.js "./recordings/meeting.m4a"
 ```
 
 搭配 meeting-note-formatter 使用：
 
 ```sh
 # 先转录音讯
-GEMINI_API_KEY=your_api_key node .agents/skills/gemini-audio-transcriber/scripts/transcribe.js "recording.mp3" > transcript.md
+GEMINI_API_KEY=your_api_key node .pi/skills/gemini-audio-transcriber/scripts/transcribe.js "recording.mp3" > transcript.md
 
 # 再用 meeting-note-formatter 整理成会议纪录
 ```
@@ -50,7 +50,7 @@ GEMINI_API_KEY=your_api_key node .agents/skills/gemini-audio-transcriber/scripts
 设定 `AUDIO_TRANSCRIBER_DRY_RUN=1` 可在不呼叫 Gemini API 的情况下，预览输入解析结果：
 
 ```sh
-AUDIO_TRANSCRIBER_DRY_RUN=1 node .agents/skills/gemini-audio-transcriber/scripts/transcribe.js "https://example.com/test.mp3"
+AUDIO_TRANSCRIBER_DRY_RUN=1 node .pi/skills/gemini-audio-transcriber/scripts/transcribe.js "https://example.com/test.mp3"
 ```
 
 输出范例：
@@ -79,7 +79,7 @@ AUDIO_TRANSCRIBER_DRY_RUN=1 node .agents/skills/gemini-audio-transcriber/scripts
 2. 确认环境中已设定 `GEMINI_API_KEY`。
 3. 执行转录脚本：
    ```sh
-   node .agents/skills/gemini-audio-transcriber/scripts/transcribe.js "<audio-path-or-url>"
+   node .pi/skills/gemini-audio-transcriber/scripts/transcribe.js "<audio-path-or-url>"
    ```
 4. 如果输入是本机档案路径或 `file://` URL，脚本会自动转换为 Base64 data URI。
 5. 将生成的逐字稿呈现给使用者。
@@ -106,7 +106,7 @@ AUDIO_TRANSCRIBER_DRY_RUN=1 node .agents/skills/gemini-audio-transcriber/scripts
 如需修改脚本，编辑 `src/transcribe.js` 后重新建置：
 
 ```sh
-cd .agents/skills/gemini-audio-transcriber
+cd .pi/skills/gemini-audio-transcriber
 bun install
 bun build src/transcribe.js --outfile scripts/transcribe.js --target node --minify
 ```

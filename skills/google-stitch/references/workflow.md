@@ -4,7 +4,7 @@
 
 ## 实作来源
 
-- runtime wrapper：`.agents/skills/google-stitch/scripts/generate.js`
+- runtime wrapper：`.pi/skills/google-stitch/scripts/generate.js`
 - underlying tool bundle：`.github/scripts/tools/google-stitch.mjs`
 
 ## 执行流程

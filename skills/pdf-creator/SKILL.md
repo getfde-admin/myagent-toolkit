@@ -59,10 +59,10 @@ description: Use this skill when a user asks for a PDF / PDF file / document / r
 
 ## 使用方式
 
-> ⚠️ **路徑安全**：skill 腳本位於 repo 根目錄的 `.agents/skills/` 下。若 cwd 不在 repo root，請先 `git rev-parse --show-toplevel` 取得絕對路徑，再 `cd` 到該路徑後執行。**禁止**在指令中使用 `$(...)` 語法（會被安全過濾器擋下）。
+> ⚠️ **路徑安全**：skill 腳本位於 repo 根目錄的 `.pi/skills/` 下。若 cwd 不在 repo root，請先 `git rev-parse --show-toplevel` 取得絕對路徑，再 `cd` 到該路徑後執行。**禁止**在指令中使用 `$(...)` 語法（會被安全過濾器擋下）。
 
 ```sh
-node .agents/skills/pdf-creator/scripts/build.js <input.md|input.json> [options]
+node .pi/skills/pdf-creator/scripts/build.js <input.md|input.json> [options]
 ```
 
 ### 選項
@@ -78,13 +78,13 @@ node .agents/skills/pdf-creator/scripts/build.js <input.md|input.json> [options]
 
 ```sh
 # 基本：產生 report.pdf
-node .agents/skills/pdf-creator/scripts/build.js artifacts/123/report.md --out artifacts/123/report.pdf
+node .pi/skills/pdf-creator/scripts/build.js artifacts/123/report.md --out artifacts/123/report.pdf
 
 # 從 stdin 讀
-cat report.md | node .agents/skills/pdf-creator/scripts/build.js -
+cat report.md | node .pi/skills/pdf-creator/scripts/build.js -
 
 # 指定字型
-node .agents/skills/pdf-creator/scripts/build.js report.md --font /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+node .pi/skills/pdf-creator/scripts/build.js report.md --font /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
 ```
 
 腳本會把最終輸出路徑印到 stdout（一行），方便串接。
