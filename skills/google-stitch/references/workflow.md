@@ -1,6 +1,6 @@
 # google-stitch skill workflow
 
-这个 skill 是 repo 内 `google-stitch` tool 的薄包装，目的是让 agent 能直接用 `.agents/skills` 的方式产生设计图与 HTML，而不必重新实作 Gemini 呼叫。
+这个 skill 是 repo 内 `google-stitch` tool 的薄包装，目的是让 agent 能直接用 `.pi/skills` 的方式产生设计图与 HTML，而不必重新实作 Gemini 呼叫。
 
 ## 实作来源
 
