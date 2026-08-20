@@ -199,8 +199,21 @@ jobs:
             git add templates/
             if ! git diff --cached --quiet; then
               git commit -m "chore(templates): auto-sync latest models and templates from upstream"
-              git push origin HEAD:main
-              echo "✅ Template models and configurations synced successfully"
+              # Push with rebase retry: if the remote moved (non-fast-forward),
+              # pull --rebase and push again instead of failing the whole job.
+              for attempt in 1 2 3; do
+                if git push origin HEAD:main; then
+                  echo "✅ Template models and configurations synced successfully"
+                  break
+                fi
+                echo "⚠️ Push rejected (attempt $attempt/3), rebasing on remote main..."
+                git fetch origin main
+                git rebase origin/main
+              done
+              if ! git diff --quiet origin/main HEAD; then
+                echo "::error::Failed to push template sync after 3 attempts (remote keeps moving)."
+                exit 1
+              fi
             else
               echo "ℹ️ Templates already up to date with upstream"
             fi
