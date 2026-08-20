@@ -107,9 +107,15 @@ jobs:
           SECRET_OLLAMA_API_KEY: ${{ secrets.OLLAMA_API_KEY }}
         run: |
           # Read the provider (Pi native provider id)
-          PROVIDER="openrouter"
+          PROVIDER=""
           if [ -f .pi/settings.json ]; then
-            PROVIDER=$(jq -r '.defaultProvider // "openrouter"' .pi/settings.json)
+            PROVIDER=$(jq -r '.defaultProvider // ""' .pi/settings.json)
+          fi
+
+          # Fail clearly if the user has not configured an LLM provider yet
+          if [[ -z "$PROVIDER" ]]; then
+            echo "No LLM provider configured. Set defaultProvider in .pi/settings.json (e.g. via the Admin Page) before running tasks." >&2
+            exit 1
           fi
 
           # Set the corresponding Pi env vars for the provider
